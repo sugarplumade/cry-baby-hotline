@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cry Baby Hotline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Outfit:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/crybabyredlogo.png" />
+    <link rel="apple-touch-icon" href="/crybabyredlogo.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="grain"></div>
+    <main class="shell">
+      <header class="hero">
+        <img class="brand-logo" src="/crybabyredlogo.png" alt="Cry Baby Hotline logo" />
+        <p class="label">Public Listening Archive</p>
+        <h1>Cry Baby Hotline</h1>
+        <p>
+          A public wall of worry. Upload call recordings so people can hear what the neighborhood is carrying.
+        </p>
+      </header>
+
+      <section class="panel upload-panel">
+        <h2>Upload a Voice Message</h2>
+        <form id="upload-form" class="stack">
+          <label for="nickname">Nickname (optional)</label>
+          <input id="nickname" name="nickname" type="text" maxlength="40" placeholder="Anonymous" />
+
+          <label for="worry">What are they worried about? (optional)</label>
+          <input
+            id="worry"
+            name="worry"
+            type="text"
+            maxlength="140"
+            placeholder="Rent, climate, loneliness, grief..."
+          />
+
+          <label for="locationHint">Location tag (optional)</label>
+          <input id="locationHint" name="locationHint" type="text" maxlength="60" placeholder="Flatbush bus stop" />
+
+          <label for="voice">Voice file</label>
+          <input id="voice" name="voice" type="file" accept="audio/*" required />
+
+          <button type="submit" id="submit-btn">Post to Hotline</button>
+          <p id="status" class="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="panel feed-panel">
+        <div class="feed-head">
+          <h2>Recent Messages</h2>
+          <button id="refresh-btn" type="button" class="ghost">Refresh</button>
+        </div>
+        <div id="message-feed" class="message-feed"></div>
+      </section>
+    </main>
+
+    <script src="/script.js"></script>
+  </body>
+</html>
