@@ -42,6 +42,7 @@ Render deploys from a Git repo. Push your project to GitHub first.
 
 Add these in Render -> Environment:
 
+- `HOTLINE_DATA_DIR=/var/data`
 - `PUBLIC_BASE_URL=https://YOUR-RENDER-DOMAIN.onrender.com`
 - `TWILIO_ACCOUNT_SID=AC...`
 - `TWILIO_AUTH_TOKEN=...`
@@ -61,7 +62,8 @@ In Twilio Console for your number:
 Open your Render URL in any browser and confirm you can view/upload/play audio.
 
 Important:
-- This app stores uploads on local disk (`uploads/`), which can be lost on restarts/redeploys in some hosting plans. Use persistent disk/object storage for long-term archives.
+- To keep voice messages from disappearing, attach a Render Persistent Disk and mount it at `/var/data`, then set `HOTLINE_DATA_DIR=/var/data`.
+- If you do not attach persistent storage, uploads and `messages.json` can be lost on restarts/redeploys.
 - Rotate Twilio auth token if it was ever shared.
 
 ## Direct Call-In Number (Twilio)

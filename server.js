@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const app = express();
 const PORT = process.env.PORT || 3003;
 
-const DATA_DIR = __dirname;
+const DATA_DIR = path.resolve(process.env.HOTLINE_DATA_DIR || __dirname);
 const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
 const MESSAGES_FILE = path.join(DATA_DIR, "messages.json");
 const TWILIO_BASE_URL = String(process.env.PUBLIC_BASE_URL || "").trim().replace(/\/+$/, "");
