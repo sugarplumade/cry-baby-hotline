@@ -23,6 +23,16 @@ const TWILIO_MAX_LENGTH = Math.min(
 );
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || "";
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || "";
+const DAILY_PROMPTS = [
+  "Are we living in post Queer Reconstruction?",
+  "What are you afraid to say out loud this week?",
+  "What feels fragile in your world right now?",
+  "What are you grieving that no one else notices?",
+  "What kind of future are you scared we are building?",
+  "What do you wish your neighborhood would protect better?",
+  "What hope are you still holding onto?"
+];
+const PROMPT_START_DATE = "2026-02-20";
 
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -77,6 +87,16 @@ function maskPhone(value) {
   return `***${clean.slice(-4)}`;
 }
 
+function getPromptOfTheDay() {
+  const start = new Date(`${PROMPT_START_DATE}T00:00:00`);
+  const now = new Date();
+  const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dayMs = 24 * 60 * 60 * 1000;
+  const dayOffset = Math.floor((todayLocal.getTime() - start.getTime()) / dayMs);
+  const safeOffset = Number.isFinite(dayOffset) ? Math.max(0, dayOffset) : 0;
+  return DAILY_PROMPTS[safeOffset % DAILY_PROMPTS.length];
+}
+
 function safeOriginalName(name) {
   return path
     .basename(name, path.extname(name))
@@ -129,10 +149,12 @@ app.all("/api/twilio/voice", (_req, res) => {
   const actionUrl = escapeXml(buildPublicUrl("/api/twilio/recording-complete"));
   const statusCallbackUrl = escapeXml(buildPublicUrl("/api/twilio/recording-status"));
   const greeting = escapeXml(TWILIO_GREETING);
+  const prompt = escapeXml(getPromptOfTheDay());
 
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say>${greeting}</Say>
+  <Say>Worry of the day: ${prompt}</Say>
   <Record action="${actionUrl}" method="POST" maxLength="${TWILIO_MAX_LENGTH}" playBeep="true" trim="trim-silence" recordingStatusCallback="${statusCallbackUrl}" recordingStatusCallbackMethod="POST"/>
   <Say>No recording received. Goodbye.</Say>
 </Response>`;
