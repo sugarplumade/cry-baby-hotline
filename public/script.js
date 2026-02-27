@@ -2,10 +2,10 @@ const uploadForm = document.getElementById("upload-form");
 const voiceInput = document.getElementById("voice");
 const submitBtn = document.getElementById("submit-btn");
 const statusEl = document.getElementById("status");
-const feedEl = document.getElementById("message-feed");
-const refreshBtn = document.getElementById("refresh-btn");
+const orbitalFeedEl = document.getElementById("orbital-feed");
 
 function setStatus(message, isError = false) {
+  if (!statusEl) return;
   statusEl.textContent = message;
   statusEl.classList.toggle("error", isError);
 }
@@ -13,8 +13,9 @@ function setStatus(message, isError = false) {
 function formatDate(iso) {
   const date = new Date(iso);
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short"
+    month: "short",
+    day: "numeric",
+    year: "numeric"
   }).format(date);
 }
 
@@ -26,66 +27,60 @@ function formatDuration(value) {
   return `${mins}m ${secs.toString().padStart(2, "0")}s`;
 }
 
-function formatBytes(bytes) {
-  if (!Number.isFinite(bytes) || bytes < 0) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+function buildOrbitSummary(message) {
+  const lead = message.worry || "Voice note from the hotline.";
+  const duration = formatDuration(message.durationSeconds);
+  return duration === "Duration unknown" ? lead : `${lead} ${duration}.`;
 }
 
-function buildCard(message) {
+function buildOrbitCard(message, index) {
   const article = document.createElement("article");
-  article.className = "message-card";
+  article.className = `orbit-card orbit-card-${(index % 6) + 1}`;
 
-  const meta = document.createElement("div");
-  meta.className = "message-meta";
+  const meta = document.createElement("p");
+  meta.className = "orbit-meta";
+  const location = message.locationHint || "Location withheld";
+  meta.textContent = `${formatDate(message.createdAt)} • ${location}`;
 
-  const name = document.createElement("strong");
-  name.textContent = message.nickname || "Anonymous";
-
-  const time = document.createElement("time");
-  time.dateTime = message.createdAt;
-  time.textContent = formatDate(message.createdAt);
-
-  meta.append(name, time);
-
-  const sub = document.createElement("p");
-  sub.className = "message-sub";
-  const tags = [];
-  if (message.worry) tags.push(message.worry);
-  if (message.locationHint) tags.push(`@ ${message.locationHint}`);
-  tags.push(formatDuration(message.durationSeconds));
-  if (message.sizeBytes) tags.push(formatBytes(message.sizeBytes));
-  sub.textContent = tags.join(" • ");
+  const summary = document.createElement("p");
+  summary.className = "orbit-summary";
+  summary.textContent = buildOrbitSummary(message);
 
   const player = document.createElement("audio");
   player.controls = true;
   player.preload = "none";
   player.src = message.audioUrl;
 
-  article.append(meta, sub, player);
+  article.append(meta, summary, player);
   return article;
 }
 
-async function loadMessages() {
+async function fetchMessages() {
   const res = await fetch("/api/messages");
   if (!res.ok) {
     throw new Error("Could not load messages.");
   }
 
   const data = await res.json();
-  feedEl.innerHTML = "";
+  return Array.isArray(data.messages) ? data.messages : [];
+}
 
-  if (!data.messages.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty";
-    empty.textContent = "No hotline recordings yet. Upload the first one.";
-    feedEl.appendChild(empty);
+async function loadOrbitalMessages() {
+  if (!orbitalFeedEl) return;
+
+  const messages = await fetchMessages();
+  orbitalFeedEl.innerHTML = "";
+
+  if (!messages.length) {
+    const empty = document.createElement("p");
+    empty.className = "orbit-empty";
+    empty.textContent = "No messages in orbit yet.";
+    orbitalFeedEl.appendChild(empty);
     return;
   }
 
-  data.messages.forEach((message) => {
-    feedEl.appendChild(buildCard(message));
+  messages.slice(0, 6).forEach((message, index) => {
+    orbitalFeedEl.appendChild(buildOrbitCard(message, index));
   });
 }
 
@@ -111,51 +106,46 @@ function getAudioDuration(file) {
   });
 }
 
-uploadForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+if (uploadForm) {
+  uploadForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-  const file = voiceInput.files?.[0];
-  if (!file) {
-    setStatus("Choose an audio file before posting.", true);
-    return;
-  }
-
-  submitBtn.disabled = true;
-  setStatus("Posting voice message...");
-
-  try {
-    const duration = await getAudioDuration(file);
-    const formData = new FormData(uploadForm);
-    if (duration !== null) {
-      formData.append("durationSeconds", String(duration));
+    const file = voiceInput?.files?.[0];
+    if (!file) {
+      setStatus("Choose an audio file before posting.", true);
+      return;
     }
 
-    const res = await fetch("/api/messages", {
-      method: "POST",
-      body: formData
-    });
+    if (submitBtn) submitBtn.disabled = true;
+    setStatus("Posting voice message...");
 
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || "Upload failed.");
+    try {
+      const duration = await getAudioDuration(file);
+      const formData = new FormData(uploadForm);
+      if (duration !== null) {
+        formData.append("durationSeconds", String(duration));
+      }
+
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed.");
+      }
+
+      uploadForm.reset();
+      setStatus("Voice message posted.");
+    } catch (error) {
+      setStatus(error.message || "Upload failed.", true);
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
     }
-
-    uploadForm.reset();
-    setStatus("Voice message posted.");
-    await loadMessages();
-  } catch (error) {
-    setStatus(error.message || "Upload failed.", true);
-  } finally {
-    submitBtn.disabled = false;
-  }
-});
-
-refreshBtn.addEventListener("click", () => {
-  loadMessages().catch((error) => {
-    setStatus(error.message, true);
   });
-});
+}
 
-loadMessages().catch((error) => {
-  setStatus(error.message, true);
-});
+if (orbitalFeedEl) {
+  loadOrbitalMessages().catch(() => {});
+}

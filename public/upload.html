@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cry Baby Hotline</title>
+    <title>Upload | Cry Baby Hotline</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -23,26 +23,29 @@
     </div>
     <div class="grain"></div>
 
-    <main class="cosmos-shell">
+    <main class="upload-shell">
       <nav class="micro-nav" aria-label="Primary">
-        <a href="/upload.html">Upload</a>
+        <a href="/">Home</a>
       </nav>
 
-      <section class="cosmos-stage">
-        <div class="hero-core">
-          <div class="unsmiley-mark" aria-hidden="true">
-            <span class="unsmiley-eye unsmiley-eye-left"></span>
-            <span class="unsmiley-eye unsmiley-eye-right"></span>
-            <span class="unsmiley-mouth"></span>
-          </div>
-          <div class="hero-copy">
-            <p class="label">Public Listening Archive</p>
-            <h1>Cry Baby Hotline</h1>
-            <p>A public wall of worry. Upload call recordings so people can hear what the neighborhood is carrying.</p>
-          </div>
-        </div>
+      <section class="upload-panel">
+        <h1>Upload a Voice Message</h1>
+        <form id="upload-form" class="stack">
+          <label for="nickname">Nickname (optional)</label>
+          <input id="nickname" name="nickname" type="text" maxlength="40" placeholder="Anonymous" />
 
-        <div id="orbital-feed" class="orbital-feed" aria-live="polite"></div>
+          <label for="worry">What are they worried about? (optional)</label>
+          <input id="worry" name="worry" type="text" maxlength="140" placeholder="Rent, climate, loneliness, grief..." />
+
+          <label for="locationHint">Location tag (optional)</label>
+          <input id="locationHint" name="locationHint" type="text" maxlength="60" placeholder="Flatbush bus stop" />
+
+          <label for="voice">Voice file</label>
+          <input id="voice" name="voice" type="file" accept="audio/*" required />
+
+          <button type="submit" id="submit-btn">Post to Hotline</button>
+          <p id="status" class="status" aria-live="polite"></p>
+        </form>
       </section>
     </main>
 
