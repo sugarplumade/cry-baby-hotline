@@ -62,10 +62,10 @@ body {
 
 .warp-layer-far::before {
   background-image:
-    linear-gradient(90deg, transparent 0 48%, rgba(255, 255, 255, 0.55) 49%, transparent 50%),
-    linear-gradient(100deg, transparent 0 47%, rgba(255, 255, 255, 0.35) 48%, transparent 50%);
-  background-size: 180px 180px, 240px 240px;
-  animation: driftStars 42s linear infinite;
+    linear-gradient(90deg, transparent 0 48%, rgba(255, 255, 255, 0.42) 49%, transparent 50%),
+    linear-gradient(102deg, transparent 0 47%, rgba(255, 255, 255, 0.24) 48%, transparent 50%);
+  background-size: 120px 220px, 160px 280px;
+  animation: warpForwardSlow 18s linear infinite;
 }
 
 .warp-layer-mid {
@@ -74,10 +74,10 @@ body {
 
 .warp-layer-mid::before {
   background-image:
-    linear-gradient(90deg, transparent 0 47%, rgba(255, 255, 255, 0.72) 48%, rgba(255, 255, 255, 0.12) 49%, transparent 52%),
-    linear-gradient(90deg, transparent 0 49%, rgba(255, 255, 255, 0.45) 50%, transparent 53%);
-  background-size: 120px 220px, 160px 260px;
-  animation: warpForward 24s linear infinite;
+    linear-gradient(90deg, transparent 0 47%, rgba(255, 255, 255, 0.82) 48%, rgba(255, 255, 255, 0.12) 49%, transparent 54%),
+    linear-gradient(90deg, transparent 0 49%, rgba(255, 255, 255, 0.52) 50%, transparent 55%);
+  background-size: 76px 360px, 120px 440px;
+  animation: warpForward 10s linear infinite;
 }
 
 .warp-layer-near {
@@ -87,10 +87,10 @@ body {
 
 .warp-layer-near::before {
   background-image:
-    linear-gradient(90deg, transparent 0 46%, rgba(255, 255, 255, 0.95) 47%, rgba(255, 255, 255, 0.16) 49%, transparent 54%),
-    linear-gradient(88deg, transparent 0 45%, rgba(255, 255, 255, 0.8) 46%, transparent 51%);
-  background-size: 90px 280px, 140px 360px;
-  animation: warpForwardFast 16s linear infinite;
+    linear-gradient(90deg, transparent 0 46%, rgba(255, 255, 255, 0.98) 47%, rgba(255, 255, 255, 0.18) 49%, transparent 56%),
+    linear-gradient(88deg, transparent 0 45%, rgba(255, 255, 255, 0.84) 46%, transparent 52%);
+  background-size: 44px 620px, 72px 700px;
+  animation: warpForwardFast 5.8s linear infinite;
 }
 
 .nebula-haze {
@@ -131,12 +131,65 @@ body {
   animation: fadeRise 500ms ease;
 }
 
-.brand-logo {
-  display: block;
-  width: min(240px, 52vw);
-  height: auto;
-  margin: 0 0 0.85rem;
-  filter: brightness(1.1) contrast(1.05);
+.unsmiley-mark {
+  position: relative;
+  width: min(220px, 42vw);
+  aspect-ratio: 1 / 1;
+  margin: 0 0 1rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.08), transparent 20%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03), transparent 68%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  box-shadow:
+    inset 0 0 40px rgba(255, 255, 255, 0.05),
+    0 0 32px rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.unsmiley-mark::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background:
+    linear-gradient(90deg, transparent 0 48%, rgba(255, 255, 255, 0.12) 49%, transparent 50%),
+    linear-gradient(90deg, transparent 0 49%, rgba(255, 255, 255, 0.08) 50%, transparent 51%);
+  background-size: 30px 180px, 54px 220px;
+  opacity: 0.45;
+  animation: faceWarp 6s linear infinite;
+}
+
+.unsmiley-eye,
+.unsmiley-mouth {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.18);
+}
+
+.unsmiley-eye {
+  top: 34%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.unsmiley-eye-left {
+  left: 31%;
+}
+
+.unsmiley-eye-right {
+  right: 31%;
+}
+
+.unsmiley-mouth {
+  left: 50%;
+  bottom: 28%;
+  width: 96px;
+  height: 44px;
+  transform: translateX(-50%);
+  border-radius: 0 0 80px 80px;
+  clip-path: inset(50% 0 0 0);
 }
 
 .hero .label {
@@ -298,40 +351,51 @@ audio {
   }
 }
 
-@keyframes driftStars {
+@keyframes warpForwardSlow {
   from {
-    transform: scale(1.05) translateY(0);
+    transform: perspective(900px) translateY(-120px) scaleY(0.8);
+    opacity: 0.06;
   }
   to {
-    transform: scale(1.1) translateY(140px);
+    transform: perspective(900px) translateY(200px) scaleY(1.4);
+    opacity: 0.02;
   }
 }
 
 @keyframes warpForward {
   from {
-    transform: perspective(900px) translateY(-120px) scaleY(0.6);
-    opacity: 0.08;
+    transform: perspective(900px) translateY(-180px) scaleY(0.34);
+    opacity: 0.04;
   }
   15% {
     opacity: 0.24;
   }
   to {
-    transform: perspective(900px) translateY(220px) scaleY(1.6);
+    transform: perspective(900px) translateY(380px) scaleY(2.9);
     opacity: 0.02;
   }
 }
 
 @keyframes warpForwardFast {
   from {
-    transform: perspective(900px) translateY(-180px) scaleY(0.45);
-    opacity: 0.06;
+    transform: perspective(900px) translateY(-260px) scaleY(0.18);
+    opacity: 0.02;
   }
-  15% {
-    opacity: 0.26;
+  10% {
+    opacity: 0.32;
   }
   to {
-    transform: perspective(900px) translateY(280px) scaleY(2);
+    transform: perspective(900px) translateY(520px) scaleY(4.8);
     opacity: 0.01;
+  }
+}
+
+@keyframes faceWarp {
+  from {
+    transform: translateY(-20%) scaleY(0.8);
+  }
+  to {
+    transform: translateY(24%) scaleY(1.3);
   }
 }
 
