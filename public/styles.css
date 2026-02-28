@@ -198,12 +198,12 @@ body {
 
 .unsmiley-mouth {
   left: 50%;
-  bottom: 27%;
+  top: 54%;
   width: 120px;
   height: 54px;
   transform: translateX(-50%);
-  border-radius: 0 0 100px 100px;
-  clip-path: inset(50% 0 0 0);
+  border-radius: 100px 100px 0 0;
+  clip-path: inset(0 0 50% 0);
 }
 
 .label {
@@ -238,13 +238,26 @@ h1 {
   min-height: calc(100vh - 3rem);
 }
 
-.orbit-card {
+.orbit-shell {
   position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  animation: orbitAround var(--orbit-duration, 34s) linear infinite;
+  animation-delay: var(--orbit-delay, 0s);
+  transform-origin: center;
+}
+
+.orbit-card {
   width: min(240px, 36vw);
   padding: 0;
   background: transparent;
   border: 0;
   box-shadow: none;
+  transform: translateX(var(--orbit-radius, 330px)) translateY(-50%);
+  animation: orbitCounter var(--orbit-duration, 34s) linear infinite;
+  animation-delay: var(--orbit-delay, 0s);
 }
 
 .orbit-card p {
@@ -267,15 +280,19 @@ h1 {
 .orbit-card audio {
   width: 100%;
   height: 28px;
-  filter: grayscale(1) invert(1) contrast(0.95);
+  filter: grayscale(1) brightness(0.28) contrast(1.2);
 }
 
-.orbit-card-1 { top: 6%; left: 6%; }
-.orbit-card-2 { top: 12%; right: 7%; }
-.orbit-card-3 { top: 42%; left: 2%; }
-.orbit-card-4 { top: 48%; right: 2%; }
-.orbit-card-5 { bottom: 10%; left: 10%; }
-.orbit-card-6 { bottom: 12%; right: 10%; }
+.orbit-card audio::-webkit-media-controls-panel {
+  background: #000;
+}
+
+.orbit-shell-1 { --orbit-radius: min(42vw, 430px); --orbit-duration: 38s; --orbit-delay: 0s; }
+.orbit-shell-2 { --orbit-radius: min(36vw, 370px); --orbit-duration: 32s; --orbit-delay: -6s; }
+.orbit-shell-3 { --orbit-radius: min(30vw, 300px); --orbit-duration: 28s; --orbit-delay: -11s; }
+.orbit-shell-4 { --orbit-radius: min(32vw, 340px); --orbit-duration: 35s; --orbit-delay: -17s; }
+.orbit-shell-5 { --orbit-radius: min(40vw, 410px); --orbit-duration: 41s; --orbit-delay: -23s; }
+.orbit-shell-6 { --orbit-radius: min(34vw, 350px); --orbit-duration: 30s; --orbit-delay: -27s; }
 
 .orbit-empty {
   position: absolute;
@@ -376,6 +393,16 @@ button:disabled {
   to { transform: translateY(30%) scaleY(1.42); }
 }
 
+@keyframes orbitAround {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes orbitCounter {
+  from { transform: translateX(var(--orbit-radius, 330px)) translateY(-50%) rotate(0deg); }
+  to { transform: translateX(var(--orbit-radius, 330px)) translateY(-50%) rotate(-360deg); }
+}
+
 @media (max-width: 900px) {
   .cosmos-stage,
   .orbital-feed {
@@ -396,12 +423,18 @@ button:disabled {
     padding-bottom: 2rem;
   }
 
+  .orbit-shell,
   .orbit-card,
   .orbit-empty {
     position: relative;
     inset: auto;
     width: 100%;
     transform: none;
+    animation: none;
+  }
+
+  .orbit-card {
+    width: 100%;
   }
 
   .orbit-empty {

@@ -23,6 +23,41 @@ const TWILIO_MAX_LENGTH = Math.min(
 );
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || "";
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || "";
+const AREA_CODE_LOCATIONS = {
+  "201": "North Jersey",
+  "202": "Washington DC",
+  "212": "Manhattan",
+  "213": "Los Angeles",
+  "214": "Dallas",
+  "267": "Philadelphia",
+  "301": "Maryland",
+  "305": "Miami",
+  "310": "West Los Angeles",
+  "312": "Chicago",
+  "323": "Los Angeles",
+  "347": "New York City",
+  "404": "Atlanta",
+  "415": "San Francisco",
+  "424": "Los Angeles",
+  "469": "Dallas",
+  "504": "New Orleans",
+  "562": "Long Beach",
+  "606": "Eastern Kentucky",
+  "617": "Boston",
+  "646": "Manhattan",
+  "657": "Orange County",
+  "678": "Atlanta",
+  "702": "Las Vegas",
+  "718": "New York City",
+  "725": "Las Vegas",
+  "747": "Los Angeles",
+  "775": "Nevada",
+  "818": "San Fernando Valley",
+  "832": "Houston",
+  "917": "New York City",
+  "929": "New York City",
+  "949": "Orange County"
+};
 
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -75,6 +110,12 @@ function maskPhone(value) {
   const clean = String(value || "").replace(/[^\d+]/g, "");
   if (clean.length < 4) return "Unknown";
   return `***${clean.slice(-4)}`;
+}
+
+function inferLocationFromPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  const areaCode = digits.length === 11 && digits.startsWith("1") ? digits.slice(1, 4) : digits.slice(0, 3);
+  return AREA_CODE_LOCATIONS[areaCode] || "";
 }
 
 function safeOriginalName(name) {
@@ -212,13 +253,13 @@ app.post("/api/twilio/recording-status", async (req, res) => {
 
     const transcriptionText = sanitizeText(req.body.TranscriptionText || "", 140);
     const fromNumber = sanitizeText(req.body.From || "", 64);
-    const toNumber = sanitizeText(req.body.To || "", 64);
+    const areaCodeLocation = inferLocationFromPhone(fromNumber);
 
     const entry = {
       id: crypto.randomUUID(),
       nickname: fromNumber ? `Caller ${maskPhone(fromNumber)}` : "Phone Caller",
       worry: transcriptionText || "Worry shared by phone call.",
-      locationHint: toNumber ? `Hotline ${toNumber}` : "",
+      locationHint: areaCodeLocation || "Location withheld",
       createdAt: new Date().toISOString(),
       durationSeconds,
       sizeBytes: audioBuffer.length,

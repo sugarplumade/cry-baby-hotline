@@ -34,8 +34,11 @@ function buildOrbitSummary(message) {
 }
 
 function buildOrbitCard(message, index) {
+  const shell = document.createElement("div");
+  shell.className = `orbit-shell orbit-shell-${(index % 6) + 1}`;
+
   const article = document.createElement("article");
-  article.className = `orbit-card orbit-card-${(index % 6) + 1}`;
+  article.className = "orbit-card";
 
   const meta = document.createElement("p");
   meta.className = "orbit-meta";
@@ -52,7 +55,8 @@ function buildOrbitCard(message, index) {
   player.src = message.audioUrl;
 
   article.append(meta, summary, player);
-  return article;
+  shell.appendChild(article);
+  return shell;
 }
 
 async function fetchMessages() {
