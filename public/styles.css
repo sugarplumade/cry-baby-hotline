@@ -236,6 +236,8 @@ h1 {
 .orbital-feed {
   position: relative;
   min-height: calc(100vh - 3rem);
+  perspective: 1400px;
+  transform-style: preserve-3d;
 }
 
 .orbit-shell {
@@ -247,17 +249,36 @@ h1 {
   animation: orbitAround var(--orbit-duration, 34s) linear infinite;
   animation-delay: var(--orbit-delay, 0s);
   transform-origin: center;
+  transform-style: preserve-3d;
 }
 
 .orbit-card {
-  width: min(240px, 36vw);
-  padding: 0;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  transform: translateX(var(--orbit-radius, 330px)) translateY(-50%);
-  animation: orbitCounter var(--orbit-duration, 34s) linear infinite;
+  width: min(240px, 28vw);
+  aspect-ratio: 1 / 1;
+  padding: 1rem 0.9rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03) 36%, rgba(255, 255, 255, 0.01) 62%),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 0 28px rgba(255, 255, 255, 0.05),
+    0 16px 44px rgba(0, 0, 0, 0.38);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  transform:
+    translateX(var(--orbit-radius, 330px))
+    translateY(-50%)
+    translateZ(var(--orbit-depth, 0px))
+    scale(var(--orbit-scale, 1));
+  animation:
+    orbitCounter var(--orbit-duration, 34s) linear infinite,
+    moonFloat var(--float-duration, 6s) ease-in-out infinite;
   animation-delay: var(--orbit-delay, 0s);
+  backdrop-filter: blur(4px);
 }
 
 .orbit-card p {
@@ -272,14 +293,15 @@ h1 {
 }
 
 .orbit-summary {
-  font-size: 0.95rem;
-  line-height: 1.36;
+  font-size: 0.88rem;
+  line-height: 1.32;
   color: rgba(255, 255, 255, 0.92);
+  max-width: 15ch;
 }
 
 .orbit-card audio {
-  width: 100%;
-  height: 28px;
+  width: 82%;
+  height: 30px;
   filter: grayscale(1) brightness(0.28) contrast(1.2);
 }
 
@@ -287,12 +309,12 @@ h1 {
   background: #000;
 }
 
-.orbit-shell-1 { --orbit-radius: min(42vw, 430px); --orbit-duration: 38s; --orbit-delay: 0s; }
-.orbit-shell-2 { --orbit-radius: min(36vw, 370px); --orbit-duration: 32s; --orbit-delay: -6s; }
-.orbit-shell-3 { --orbit-radius: min(30vw, 300px); --orbit-duration: 28s; --orbit-delay: -11s; }
-.orbit-shell-4 { --orbit-radius: min(32vw, 340px); --orbit-duration: 35s; --orbit-delay: -17s; }
-.orbit-shell-5 { --orbit-radius: min(40vw, 410px); --orbit-duration: 41s; --orbit-delay: -23s; }
-.orbit-shell-6 { --orbit-radius: min(34vw, 350px); --orbit-duration: 30s; --orbit-delay: -27s; }
+.orbit-shell-1 { --orbit-radius: min(42vw, 430px); --orbit-duration: 38s; --orbit-delay: 0s; --orbit-depth: 80px; --orbit-scale: 1.06; --float-duration: 7s; }
+.orbit-shell-2 { --orbit-radius: min(36vw, 370px); --orbit-duration: 32s; --orbit-delay: -6s; --orbit-depth: -60px; --orbit-scale: 0.9; --float-duration: 6s; }
+.orbit-shell-3 { --orbit-radius: min(30vw, 300px); --orbit-duration: 28s; --orbit-delay: -11s; --orbit-depth: 120px; --orbit-scale: 1.12; --float-duration: 8s; }
+.orbit-shell-4 { --orbit-radius: min(32vw, 340px); --orbit-duration: 35s; --orbit-delay: -17s; --orbit-depth: -90px; --orbit-scale: 0.86; --float-duration: 5.5s; }
+.orbit-shell-5 { --orbit-radius: min(40vw, 410px); --orbit-duration: 41s; --orbit-delay: -23s; --orbit-depth: 50px; --orbit-scale: 1; --float-duration: 7.5s; }
+.orbit-shell-6 { --orbit-radius: min(34vw, 350px); --orbit-duration: 30s; --orbit-delay: -27s; --orbit-depth: -120px; --orbit-scale: 0.82; --float-duration: 6.4s; }
 
 .orbit-empty {
   position: absolute;
@@ -399,8 +421,31 @@ button:disabled {
 }
 
 @keyframes orbitCounter {
-  from { transform: translateX(var(--orbit-radius, 330px)) translateY(-50%) rotate(0deg); }
-  to { transform: translateX(var(--orbit-radius, 330px)) translateY(-50%) rotate(-360deg); }
+  from {
+    transform:
+      translateX(var(--orbit-radius, 330px))
+      translateY(-50%)
+      translateZ(var(--orbit-depth, 0px))
+      scale(var(--orbit-scale, 1))
+      rotate(0deg);
+  }
+  to {
+    transform:
+      translateX(var(--orbit-radius, 330px))
+      translateY(-50%)
+      translateZ(var(--orbit-depth, 0px))
+      scale(var(--orbit-scale, 1))
+      rotate(-360deg);
+  }
+}
+
+@keyframes moonFloat {
+  0%, 100% {
+    margin-top: -10px;
+  }
+  50% {
+    margin-top: 10px;
+  }
 }
 
 @media (max-width: 900px) {
@@ -435,6 +480,10 @@ button:disabled {
 
   .orbit-card {
     width: 100%;
+    aspect-ratio: auto;
+    border-radius: 18px;
+    align-items: flex-start;
+    text-align: left;
   }
 
   .orbit-empty {
