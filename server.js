@@ -118,6 +118,17 @@ function inferLocationFromPhone(value) {
   return AREA_CODE_LOCATIONS[areaCode] || "";
 }
 
+function buildCallerLocation(body, fromNumber) {
+  const city = sanitizeText(body.FromCity || body.CallerCity || "", 64);
+  const state = sanitizeText(body.FromState || body.CallerState || "", 32);
+
+  if (city && state) return `${city}, ${state}`;
+  if (city) return city;
+  if (state) return state;
+
+  return inferLocationFromPhone(fromNumber) || "Location withheld";
+}
+
 function safeOriginalName(name) {
   return path
     .basename(name, path.extname(name))
@@ -253,13 +264,13 @@ app.post("/api/twilio/recording-status", async (req, res) => {
 
     const transcriptionText = sanitizeText(req.body.TranscriptionText || "", 140);
     const fromNumber = sanitizeText(req.body.From || "", 64);
-    const areaCodeLocation = inferLocationFromPhone(fromNumber);
+    const callerLocation = buildCallerLocation(req.body, fromNumber);
 
     const entry = {
       id: crypto.randomUUID(),
       nickname: fromNumber ? `Caller ${maskPhone(fromNumber)}` : "Phone Caller",
       worry: transcriptionText || "Worry shared by phone call.",
-      locationHint: areaCodeLocation || "Location withheld",
+      locationHint: callerLocation,
       createdAt: new Date().toISOString(),
       durationSeconds,
       sizeBytes: audioBuffer.length,

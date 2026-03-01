@@ -36,6 +36,31 @@ function buildOrbitSummary(message) {
   return duration === "Duration unknown" ? lead : `${lead} ${duration}.`;
 }
 
+function classifyEmotion(message) {
+  const haystack = `${message.worry || ""} ${message.locationHint || ""}`.toLowerCase();
+
+  if (/(grief|mourning|loss|lost|death|dying|funeral|heartbreak|broke my heart)/.test(haystack)) {
+    return "grief";
+  }
+  if (/(angry|anger|furious|rage|mad|pissed|resent|resentment|frustrat)/.test(haystack)) {
+    return "anger";
+  }
+  if (/(afraid|fear|terrified|scared|panic|anxious|anxiety|unsafe|worry)/.test(haystack)) {
+    return "fear";
+  }
+  if (/(lonely|alone|isolated|empty|numb|sad|depressed|depression|hopeless)/.test(haystack)) {
+    return "sadness";
+  }
+  if (/(love|joy|grateful|gratitude|relief|hope|healing|tender|peace)/.test(haystack)) {
+    return "hope";
+  }
+  if (/(confused|unclear|uncertain|lost|disoriented|overwhelmed|mixed)/.test(haystack)) {
+    return "confusion";
+  }
+
+  return "longing";
+}
+
 function getMoonSize(durationSeconds) {
   const minSize = 160;
   const maxSize = 300;
@@ -92,11 +117,12 @@ function buildOrbitCard(message, index) {
   const article = document.createElement("article");
   article.className = "orbit-card";
   article.style.setProperty("--moon-size", getMoonSize(message.durationSeconds));
+  article.dataset.emotion = classifyEmotion(message);
 
   const meta = document.createElement("p");
   meta.className = "orbit-meta";
   const location = message.locationHint || "Location withheld";
-  meta.textContent = `${formatDate(message.createdAt)} • ${location}`;
+  meta.textContent = `${classifyEmotion(message)} • ${formatDate(message.createdAt)} • ${location}`;
 
   const summary = document.createElement("p");
   summary.className = "orbit-summary";
