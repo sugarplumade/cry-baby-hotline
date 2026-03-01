@@ -266,6 +266,11 @@ h1 {
   animation-play-state: paused;
 }
 
+.orbit-shell.is-paused,
+.orbit-shell.is-paused .orbit-card {
+  animation-play-state: paused;
+}
+
 .orbit-card {
   width: var(--moon-size, min(240px, 28vw));
   aspect-ratio: 1 / 1;
@@ -313,27 +318,9 @@ h1 {
   color: rgba(255, 255, 255, 0.96);
 }
 
-.orbit-details {
+.orbit-transcript {
   display: none;
   margin-top: 0.45rem;
-}
-
-.orbit-card[data-expanded="true"] .orbit-details {
-  display: block;
-}
-
-.orbit-card p {
-  margin: 0 0 0.28rem;
-}
-
-.orbit-meta {
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.58);
-}
-
-.orbit-summary {
   font-size: 0.88rem;
   line-height: 1.32;
   color: rgba(255, 255, 255, 0.92);
@@ -341,13 +328,15 @@ h1 {
 }
 
 .orbit-card audio {
-  width: 82%;
-  height: 30px;
-  filter: grayscale(1) brightness(0.28) contrast(1.2);
+  display: none;
 }
 
-.orbit-card audio::-webkit-media-controls-panel {
-  background: #000;
+.orbit-card[data-active="true"] .orbit-city {
+  display: none;
+}
+
+.orbit-card[data-active="true"] .orbit-transcript {
+  display: block;
 }
 
 .orbit-shell-1 { --orbit-radius: min(42vw, 430px); --orbit-duration: 38s; --orbit-delay: 0s; --orbit-depth: 80px; --orbit-scale: 1.06; --float-duration: 7s; }

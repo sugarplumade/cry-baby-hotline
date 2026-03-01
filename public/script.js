@@ -5,6 +5,7 @@ const statusEl = document.getElementById("status");
 const orbitalFeedEl = document.getElementById("orbital-feed");
 const unsmileyMarkEl = document.querySelector(".unsmiley-mark");
 const activePlayers = new Set();
+const orbitShells = new Set();
 let mouthAnimationFrame = null;
 
 function setStatus(message, isError = false) {
@@ -31,7 +32,7 @@ function formatDuration(value) {
 }
 
 function buildOrbitSummary(message) {
-  const lead = message.worry || "Voice note from the hotline.";
+  const lead = message.transcript || message.worry || "Voice note from the hotline.";
   const duration = formatDuration(message.durationSeconds);
   return duration === "Duration unknown" ? lead : `${lead} ${duration}.`;
 }
@@ -110,48 +111,66 @@ function stopMouthAnimation(player) {
   stopMouthAnimationIfIdle();
 }
 
+function pauseAllOrbits() {
+  orbitShells.forEach((shell) => shell.classList.add("is-paused"));
+}
+
+function resumeAllOrbits() {
+  orbitShells.forEach((shell) => shell.classList.remove("is-paused"));
+}
+
 function buildOrbitCard(message, index) {
   const shell = document.createElement("div");
   shell.className = `orbit-shell orbit-shell-${(index % 6) + 1}`;
+  orbitShells.add(shell);
 
   const article = document.createElement("article");
   article.className = "orbit-card";
   article.style.setProperty("--moon-size", getMoonSize(message.durationSeconds));
   const emotion = classifyEmotion(message);
   article.dataset.emotion = emotion;
-  article.dataset.expanded = "false";
+  article.dataset.active = "false";
 
   const city = document.createElement("p");
   city.className = "orbit-city";
   city.textContent = (message.locationHint || "Unknown").split(",")[0];
 
-  const meta = document.createElement("p");
-  meta.className = "orbit-meta";
-  const location = message.locationHint || "Location withheld";
-  meta.textContent = `${emotion} • ${formatDate(message.createdAt)} • ${location}`;
-
-  const summary = document.createElement("p");
-  summary.className = "orbit-summary";
-  summary.textContent = buildOrbitSummary(message);
-
-  const details = document.createElement("div");
-  details.className = "orbit-details";
+  const transcript = document.createElement("p");
+  transcript.className = "orbit-transcript";
+  transcript.textContent = message.transcript || message.worry || "No transcript available.";
 
   const player = document.createElement("audio");
-  player.controls = true;
+  player.controls = false;
   player.preload = "none";
   player.src = message.audioUrl;
-  player.addEventListener("play", () => startMouthAnimation(player));
-  player.addEventListener("pause", () => stopMouthAnimation(player));
-  player.addEventListener("ended", () => stopMouthAnimation(player));
+  player.addEventListener("play", () => {
+    startMouthAnimation(player);
+    pauseAllOrbits();
+    article.dataset.active = "true";
+  });
+  player.addEventListener("pause", () => {
+    stopMouthAnimation(player);
+    article.dataset.active = "false";
+    resumeAllOrbits();
+  });
+  player.addEventListener("ended", () => {
+    stopMouthAnimation(player);
+    article.dataset.active = "false";
+    resumeAllOrbits();
+    player.currentTime = 0;
+  });
 
-  details.append(meta, summary, player);
-  article.append(city, details);
+  article.append(city, transcript, player);
 
-  article.addEventListener("click", (event) => {
-    if (event.target.closest("audio")) return;
-    const expanded = article.dataset.expanded === "true";
-    article.dataset.expanded = expanded ? "false" : "true";
+  article.addEventListener("click", () => {
+    if (player.paused || player.ended) {
+      const playAttempt = player.play();
+      if (playAttempt && typeof playAttempt.catch === "function") {
+        playAttempt.catch(() => {});
+      }
+    } else {
+      player.pause();
+    }
   });
 
   shell.appendChild(article);
