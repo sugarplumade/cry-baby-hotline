@@ -117,16 +117,25 @@ function buildOrbitCard(message, index) {
   const article = document.createElement("article");
   article.className = "orbit-card";
   article.style.setProperty("--moon-size", getMoonSize(message.durationSeconds));
-  article.dataset.emotion = classifyEmotion(message);
+  const emotion = classifyEmotion(message);
+  article.dataset.emotion = emotion;
+  article.dataset.expanded = "false";
+
+  const city = document.createElement("p");
+  city.className = "orbit-city";
+  city.textContent = (message.locationHint || "Unknown").split(",")[0];
 
   const meta = document.createElement("p");
   meta.className = "orbit-meta";
   const location = message.locationHint || "Location withheld";
-  meta.textContent = `${classifyEmotion(message)} • ${formatDate(message.createdAt)} • ${location}`;
+  meta.textContent = `${emotion} • ${formatDate(message.createdAt)} • ${location}`;
 
   const summary = document.createElement("p");
   summary.className = "orbit-summary";
   summary.textContent = buildOrbitSummary(message);
+
+  const details = document.createElement("div");
+  details.className = "orbit-details";
 
   const player = document.createElement("audio");
   player.controls = true;
@@ -136,7 +145,15 @@ function buildOrbitCard(message, index) {
   player.addEventListener("pause", () => stopMouthAnimation(player));
   player.addEventListener("ended", () => stopMouthAnimation(player));
 
-  article.append(meta, summary, player);
+  details.append(meta, summary, player);
+  article.append(city, details);
+
+  article.addEventListener("click", (event) => {
+    if (event.target.closest("audio")) return;
+    const expanded = article.dataset.expanded === "true";
+    article.dataset.expanded = expanded ? "false" : "true";
+  });
+
   shell.appendChild(article);
   return shell;
 }

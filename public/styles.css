@@ -272,11 +272,12 @@ h1 {
   padding: 1rem 0.9rem;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--moon-color, rgba(255, 255, 255, 0.5)) 34%, white 66%), rgba(255, 255, 255, 0.03) 36%, rgba(255, 255, 255, 0.01) 62%),
-    color-mix(in srgb, var(--moon-color, rgba(255, 255, 255, 0.3)) 18%, transparent);
-  border: 1px solid color-mix(in srgb, var(--moon-color, rgba(255, 255, 255, 0.3)) 42%, rgba(255, 255, 255, 0.14));
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.28), transparent 34%),
+    radial-gradient(circle at 52% 52%, var(--moon-color, rgba(255, 255, 255, 0.22)) 0%, rgba(255, 255, 255, 0.02) 62%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid var(--moon-border, rgba(255, 255, 255, 0.22));
   box-shadow:
-    inset 0 0 28px color-mix(in srgb, var(--moon-color, rgba(255, 255, 255, 0.2)) 24%, rgba(255, 255, 255, 0.05)),
+    inset 0 0 32px rgba(255, 255, 255, 0.08),
+    0 0 28px var(--moon-glow, rgba(255, 255, 255, 0.12)),
     0 16px 44px rgba(0, 0, 0, 0.38);
   display: flex;
   flex-direction: column;
@@ -293,15 +294,33 @@ h1 {
     moonFloat var(--float-duration, 6s) ease-in-out infinite;
   animation-delay: var(--orbit-delay, 0s);
   backdrop-filter: blur(4px);
+  cursor: pointer;
 }
 
-.orbit-card[data-emotion="fear"] { --moon-color: rgba(111, 201, 255, 0.7); }
-.orbit-card[data-emotion="anger"] { --moon-color: rgba(255, 94, 94, 0.75); }
-.orbit-card[data-emotion="grief"] { --moon-color: rgba(170, 154, 255, 0.72); }
-.orbit-card[data-emotion="sadness"] { --moon-color: rgba(124, 148, 255, 0.68); }
-.orbit-card[data-emotion="hope"] { --moon-color: rgba(148, 255, 205, 0.74); }
-.orbit-card[data-emotion="confusion"] { --moon-color: rgba(255, 214, 112, 0.72); }
-.orbit-card[data-emotion="longing"] { --moon-color: rgba(255, 170, 214, 0.72); }
+.orbit-card[data-emotion="fear"] { --moon-color: rgba(59, 145, 255, 0.42); --moon-border: rgba(111, 201, 255, 0.8); --moon-glow: rgba(111, 201, 255, 0.34); }
+.orbit-card[data-emotion="anger"] { --moon-color: rgba(255, 66, 66, 0.42); --moon-border: rgba(255, 107, 107, 0.84); --moon-glow: rgba(255, 94, 94, 0.34); }
+.orbit-card[data-emotion="grief"] { --moon-color: rgba(130, 92, 255, 0.4); --moon-border: rgba(180, 158, 255, 0.82); --moon-glow: rgba(170, 154, 255, 0.34); }
+.orbit-card[data-emotion="sadness"] { --moon-color: rgba(82, 109, 255, 0.4); --moon-border: rgba(124, 148, 255, 0.82); --moon-glow: rgba(124, 148, 255, 0.3); }
+.orbit-card[data-emotion="hope"] { --moon-color: rgba(76, 218, 158, 0.38); --moon-border: rgba(148, 255, 205, 0.82); --moon-glow: rgba(148, 255, 205, 0.34); }
+.orbit-card[data-emotion="confusion"] { --moon-color: rgba(255, 177, 30, 0.38); --moon-border: rgba(255, 214, 112, 0.82); --moon-glow: rgba(255, 214, 112, 0.32); }
+.orbit-card[data-emotion="longing"] { --moon-color: rgba(255, 105, 180, 0.34); --moon-border: rgba(255, 170, 214, 0.82); --moon-glow: rgba(255, 170, 214, 0.32); }
+
+.orbit-city {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.8vw, 1.2rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.orbit-details {
+  display: none;
+  margin-top: 0.45rem;
+}
+
+.orbit-card[data-expanded="true"] .orbit-details {
+  display: block;
+}
 
 .orbit-card p {
   margin: 0 0 0.28rem;

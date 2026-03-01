@@ -67,6 +67,8 @@ if (!fs.existsSync(MESSAGES_FILE)) {
   fs.writeFileSync(MESSAGES_FILE, JSON.stringify([], null, 2));
 }
 
+backfillExistingMessages();
+
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -127,6 +129,34 @@ function buildCallerLocation(body, fromNumber) {
   if (state) return state;
 
   return inferLocationFromPhone(fromNumber) || "Location withheld";
+}
+
+function backfillExistingMessages() {
+  const messages = readMessages();
+  let changed = false;
+
+  const updated = messages.map((message) => {
+    if (message.source !== "twilio") return message;
+    if (message.locationHint && message.locationHint !== "Location withheld") return message;
+
+    const candidateNumber =
+      message.callerNumber ||
+      message.fromNumber ||
+      (typeof message.locationHint === "string" && message.locationHint.includes("+") ? message.locationHint : "");
+    const inferred = inferLocationFromPhone(candidateNumber);
+
+    if (!inferred) return message;
+
+    changed = true;
+    return {
+      ...message,
+      locationHint: inferred
+    };
+  });
+
+  if (changed) {
+    writeMessages(updated);
+  }
 }
 
 function safeOriginalName(name) {
@@ -276,6 +306,9 @@ app.post("/api/twilio/recording-status", async (req, res) => {
       sizeBytes: audioBuffer.length,
       audioUrl: `/uploads/${encodeURIComponent(filename)}`,
       source: "twilio",
+      callerNumber: fromNumber,
+      callerCity: sanitizeText(req.body.FromCity || req.body.CallerCity || "", 64),
+      callerState: sanitizeText(req.body.FromState || req.body.CallerState || "", 32),
       twilioCallSid: sanitizeText(req.body.CallSid || "", 80),
       twilioRecordingSid
     };
