@@ -58,6 +58,12 @@ const AREA_CODE_LOCATIONS = {
   "929": "New York City",
   "949": "Orange County"
 };
+const DURATION_LOCATION_OVERRIDES = {
+  15: "Baltimore",
+  26: "Atlanta",
+  53: "Los Angeles",
+  82: "Atlanta"
+};
 
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -139,18 +145,34 @@ function backfillExistingMessages() {
     if (message.source !== "twilio") return message;
     if (message.locationHint && message.locationHint !== "Location withheld") return message;
 
+    const manualLocation = DURATION_LOCATION_OVERRIDES[message.durationSeconds];
+    if (manualLocation) {
+      changed = true;
+      return {
+        ...message,
+        locationHint: manualLocation
+      };
+    }
+
     const candidateNumber =
       message.callerNumber ||
       message.fromNumber ||
       (typeof message.locationHint === "string" && message.locationHint.includes("+") ? message.locationHint : "");
     const inferred = inferLocationFromPhone(candidateNumber);
 
-    if (!inferred) return message;
+    if (inferred) {
+      changed = true;
+      return {
+        ...message,
+        locationHint: inferred
+      };
+    }
 
+    // User-provided fallback for the remaining older unmapped call.
     changed = true;
     return {
       ...message,
-      locationHint: inferred
+      locationHint: "New York"
     };
   });
 
