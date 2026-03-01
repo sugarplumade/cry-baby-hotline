@@ -261,6 +261,11 @@ h1 {
   transform-style: preserve-3d;
 }
 
+.orbit-shell:hover,
+.orbit-shell:hover .orbit-card {
+  animation-play-state: paused;
+}
+
 .orbit-card {
   width: var(--moon-size, min(240px, 28vw));
   aspect-ratio: 1 / 1;
