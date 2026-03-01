@@ -25,6 +25,7 @@ const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || "";
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || "";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_TRANSCRIBE_MODEL = process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe";
+const TRANSCRIPTION_ADMIN_TOKEN = process.env.TRANSCRIPTION_ADMIN_TOKEN || "";
 const AREA_CODE_LOCATIONS = {
   "201": "North Jersey",
   "202": "Washington DC",
@@ -192,6 +193,11 @@ function safeOriginalName(name) {
     .slice(0, 60);
 }
 
+function isPlaceholderWorry(value) {
+  const normalized = sanitizeText(value || "", 200).toLowerCase();
+  return !normalized || normalized === "worry shared by phone call.";
+}
+
 function guessAudioMimeType(fileName) {
   const ext = path.extname(fileName || "").toLowerCase();
   if (ext === ".mp3") return "audio/mpeg";
@@ -232,6 +238,39 @@ async function transcribeAudioBuffer(buffer, fileName) {
     console.error("Transcription failed:", error.message);
     return "";
   }
+}
+
+async function transcribeMessageEntry(message) {
+  const relativeAudioUrl = String(message.audioUrl || "");
+  if (!relativeAudioUrl.startsWith("/uploads/")) {
+    throw new Error("Message audio is not stored locally.");
+  }
+
+  const fileName = decodeURIComponent(relativeAudioUrl.replace("/uploads/", ""));
+  const filePath = path.join(UPLOADS_DIR, fileName);
+  const audioBuffer = fs.readFileSync(filePath);
+  const transcript = await transcribeAudioBuffer(audioBuffer, fileName);
+
+  if (!transcript) {
+    return null;
+  }
+
+  return {
+    ...message,
+    transcript,
+    worry: isPlaceholderWorry(message.worry) ? transcript : message.worry
+  };
+}
+
+function hasValidAdminToken(req) {
+  if (!TRANSCRIPTION_ADMIN_TOKEN) return false;
+
+  const bearer = String(req.headers.authorization || "");
+  if (bearer.startsWith("Bearer ")) {
+    return bearer.slice(7).trim() === TRANSCRIPTION_ADMIN_TOKEN;
+  }
+
+  return String(req.headers["x-admin-token"] || "").trim() === TRANSCRIPTION_ADMIN_TOKEN;
 }
 
 const ALLOWED_EXTENSIONS = new Set([".mp3", ".wav", ".m4a", ".ogg", ".oga", ".webm", ".aac", ".flac"]);
@@ -395,6 +434,60 @@ app.post("/api/twilio/recording-status", async (req, res) => {
 app.get("/api/messages", (_req, res) => {
   const messages = readMessages().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   res.json({ messages });
+});
+
+app.post("/api/admin/transcribe-backfill", async (req, res) => {
+  if (!hasValidAdminToken(req)) {
+    return res.status(401).json({ error: "Unauthorized." });
+  }
+
+  if (!OPENAI_API_KEY) {
+    return res.status(400).json({ error: "OPENAI_API_KEY is not configured." });
+  }
+
+  const requestedLimit = Number(req.body?.limit);
+  const limit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(50, Math.round(requestedLimit))) : 10;
+
+  const messages = readMessages();
+  const pendingIndexes = [];
+  for (let index = 0; index < messages.length; index += 1) {
+    if (!sanitizeText(messages[index].transcript || "", 600)) {
+      pendingIndexes.push(index);
+    }
+  }
+
+  if (!pendingIndexes.length) {
+    return res.json({ message: "No recordings need transcription.", updated: 0, totalPending: 0 });
+  }
+
+  let updated = 0;
+  const errors = [];
+
+  for (const index of pendingIndexes.slice(0, limit)) {
+    try {
+      const nextMessage = await transcribeMessageEntry(messages[index]);
+      if (!nextMessage) continue;
+      messages[index] = nextMessage;
+      updated += 1;
+    } catch (error) {
+      errors.push({
+        id: messages[index].id,
+        error: error.message
+      });
+    }
+  }
+
+  if (updated > 0) {
+    writeMessages(messages);
+  }
+
+  return res.json({
+    message: updated ? "Backfill complete." : "No recordings were transcribed.",
+    updated,
+    attempted: Math.min(limit, pendingIndexes.length),
+    remaining: Math.max(0, pendingIndexes.length - Math.min(limit, pendingIndexes.length)),
+    errors
+  });
 });
 
 app.post("/api/messages", upload.single("voice"), async (req, res) => {

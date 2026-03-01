@@ -46,6 +46,9 @@ Add these in Render -> Environment:
 - `PUBLIC_BASE_URL=https://YOUR-RENDER-DOMAIN.onrender.com`
 - `TWILIO_ACCOUNT_SID=AC...`
 - `TWILIO_AUTH_TOKEN=...`
+- `OPENAI_API_KEY=...`
+- `OPENAI_TRANSCRIBE_MODEL=gpt-4o-mini-transcribe`
+- `TRANSCRIPTION_ADMIN_TOKEN=choose-a-long-random-secret`
 - `TWILIO_GREETING=You reached Cry Baby Hotline. Leave your worry after the beep.`
 - `TWILIO_MAX_LENGTH_SECONDS=120`
 
@@ -65,6 +68,8 @@ Important:
 - To keep voice messages from disappearing, attach a Render Persistent Disk and mount it at `/var/data`, then set `HOTLINE_DATA_DIR=/var/data`.
 - If you do not attach persistent storage, uploads and `messages.json` can be lost on restarts/redeploys.
 - Rotate Twilio auth token if it was ever shared.
+- New uploads and new Twilio calls are transcribed only when `OPENAI_API_KEY` is set.
+- Older recordings are not transcribed automatically; use the backfill endpoint below after deployment.
 
 ## Direct Call-In Number (Twilio)
 
@@ -111,3 +116,33 @@ Flow:
 - Twilio records message
 - App ingests the recording via `/api/twilio/recording-status`
 - Message appears in the site feed
+
+## Transcription
+
+The app already stores transcription text in each message when OpenAI transcription is configured.
+
+### Required env vars
+
+- `OPENAI_API_KEY`
+- `OPENAI_TRANSCRIBE_MODEL` (optional, defaults to `gpt-4o-mini-transcribe`)
+- `TRANSCRIPTION_ADMIN_TOKEN` for the protected backfill endpoint
+
+### For new recordings
+
+Once `OPENAI_API_KEY` is set in Render, new uploads and new Twilio calls will be transcribed automatically.
+
+### Backfill older recordings
+
+After deployment, run this against the live site to transcribe older saved recordings that do not yet have `transcript` data:
+
+```bash
+curl -X POST "https://cry-baby-hotline.onrender.com/api/admin/transcribe-backfill" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TRANSCRIPTION_ADMIN_TOKEN" \
+  -d '{"limit":10}'
+```
+
+Notes:
+- `limit` is optional and capped at `50` per request.
+- The route only processes messages that are missing `transcript`.
+- If a record still has the placeholder worry text, the transcript becomes the displayed worry text too.
