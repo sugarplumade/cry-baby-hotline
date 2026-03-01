@@ -397,7 +397,7 @@ app.get("/api/messages", (_req, res) => {
   res.json({ messages });
 });
 
-app.post("/api/messages", upload.single("voice"), (req, res) => {
+app.post("/api/messages", upload.single("voice"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "An audio file is required." });
   }
