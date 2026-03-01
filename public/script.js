@@ -3,6 +3,9 @@ const voiceInput = document.getElementById("voice");
 const submitBtn = document.getElementById("submit-btn");
 const statusEl = document.getElementById("status");
 const orbitalFeedEl = document.getElementById("orbital-feed");
+const unsmileyMarkEl = document.querySelector(".unsmiley-mark");
+const activePlayers = new Set();
+let mouthAnimationFrame = null;
 
 function setStatus(message, isError = false) {
   if (!statusEl) return;
@@ -33,12 +36,62 @@ function buildOrbitSummary(message) {
   return duration === "Duration unknown" ? lead : `${lead} ${duration}.`;
 }
 
+function getMoonSize(durationSeconds) {
+  const minSize = 160;
+  const maxSize = 300;
+  const safeDuration = Number.isFinite(durationSeconds) ? Math.max(0, Math.min(durationSeconds, 180)) : 45;
+  const ratio = safeDuration / 180;
+  return `${Math.round(minSize + (maxSize - minSize) * ratio)}px`;
+}
+
+function stopMouthAnimationIfIdle() {
+  if (!unsmileyMarkEl || activePlayers.size) return;
+  unsmileyMarkEl.classList.remove("is-speaking");
+  unsmileyMarkEl.style.removeProperty("--mouth-open");
+  if (mouthAnimationFrame) {
+    cancelAnimationFrame(mouthAnimationFrame);
+    mouthAnimationFrame = null;
+  }
+}
+
+function tickMouthAnimation() {
+  if (!unsmileyMarkEl || !activePlayers.size) {
+    stopMouthAnimationIfIdle();
+    return;
+  }
+
+  let energy = 0;
+  activePlayers.forEach((player) => {
+    if (player.paused || player.ended) return;
+    energy += 0.9 + Math.abs(Math.sin(player.currentTime * 7.2)) * 0.95;
+  });
+
+  const mouthOpen = Math.min(2.35, 1 + energy * 0.22);
+  unsmileyMarkEl.classList.add("is-speaking");
+  unsmileyMarkEl.style.setProperty("--mouth-open", mouthOpen.toFixed(2));
+  mouthAnimationFrame = requestAnimationFrame(tickMouthAnimation);
+}
+
+function startMouthAnimation(player) {
+  if (!unsmileyMarkEl) return;
+  activePlayers.add(player);
+  if (!mouthAnimationFrame) {
+    mouthAnimationFrame = requestAnimationFrame(tickMouthAnimation);
+  }
+}
+
+function stopMouthAnimation(player) {
+  activePlayers.delete(player);
+  stopMouthAnimationIfIdle();
+}
+
 function buildOrbitCard(message, index) {
   const shell = document.createElement("div");
   shell.className = `orbit-shell orbit-shell-${(index % 6) + 1}`;
 
   const article = document.createElement("article");
   article.className = "orbit-card";
+  article.style.setProperty("--moon-size", getMoonSize(message.durationSeconds));
 
   const meta = document.createElement("p");
   meta.className = "orbit-meta";
@@ -53,6 +106,9 @@ function buildOrbitCard(message, index) {
   player.controls = true;
   player.preload = "none";
   player.src = message.audioUrl;
+  player.addEventListener("play", () => startMouthAnimation(player));
+  player.addEventListener("pause", () => stopMouthAnimation(player));
+  player.addEventListener("ended", () => stopMouthAnimation(player));
 
   article.append(meta, summary, player);
   shell.appendChild(article);

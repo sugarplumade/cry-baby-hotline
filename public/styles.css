@@ -202,8 +202,10 @@ body {
   width: 120px;
   height: 54px;
   transform: translateX(-50%);
+  transform-origin: center top;
   border-radius: 100px 100px 0 0;
   clip-path: inset(0 0 50% 0);
+  transition: transform 80ms linear;
 }
 
 .label {
@@ -253,7 +255,7 @@ h1 {
 }
 
 .orbit-card {
-  width: min(240px, 28vw);
+  width: var(--moon-size, min(240px, 28vw));
   aspect-ratio: 1 / 1;
   padding: 1rem 0.9rem;
   border-radius: 50%;
@@ -490,4 +492,8 @@ button:disabled {
     left: auto;
     bottom: auto;
   }
+}
+
+.unsmiley-mark.is-speaking .unsmiley-mouth {
+  transform: translateX(-50%) scaleY(var(--mouth-open, 1.15));
 }
