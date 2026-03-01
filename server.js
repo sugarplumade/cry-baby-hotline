@@ -23,6 +23,8 @@ const TWILIO_MAX_LENGTH = Math.min(
 );
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || "";
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || "";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+const OPENAI_TRANSCRIBE_MODEL = process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe";
 const AREA_CODE_LOCATIONS = {
   "201": "North Jersey",
   "202": "Washington DC",
@@ -190,6 +192,48 @@ function safeOriginalName(name) {
     .slice(0, 60);
 }
 
+function guessAudioMimeType(fileName) {
+  const ext = path.extname(fileName || "").toLowerCase();
+  if (ext === ".mp3") return "audio/mpeg";
+  if (ext === ".wav") return "audio/wav";
+  if (ext === ".m4a") return "audio/mp4";
+  if (ext === ".ogg" || ext === ".oga") return "audio/ogg";
+  if (ext === ".webm") return "audio/webm";
+  if (ext === ".aac") return "audio/aac";
+  if (ext === ".flac") return "audio/flac";
+  return "application/octet-stream";
+}
+
+async function transcribeAudioBuffer(buffer, fileName) {
+  if (!OPENAI_API_KEY || !buffer?.length) return "";
+
+  const formData = new FormData();
+  formData.append("model", OPENAI_TRANSCRIBE_MODEL);
+  formData.append("language", "en");
+  formData.append("response_format", "json");
+  formData.append("file", new Blob([buffer], { type: guessAudioMimeType(fileName) }), fileName || "audio.mp3");
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI transcription failed with ${response.status}`);
+    }
+
+    const payload = await response.json();
+    return sanitizeText(payload.text || "", 600);
+  } catch (error) {
+    console.error("Transcription failed:", error.message);
+    return "";
+  }
+}
+
 const ALLOWED_EXTENSIONS = new Set([".mp3", ".wav", ".m4a", ".ogg", ".oga", ".webm", ".aac", ".flac"]);
 const ALLOWED_MIME_PREFIXES = ["audio/"];
 
@@ -306,6 +350,7 @@ app.post("/api/twilio/recording-status", async (req, res) => {
     const filename = `call-${unique}.mp3`;
     const filePath = path.join(UPLOADS_DIR, filename);
     fs.writeFileSync(filePath, audioBuffer);
+    const transcript = await transcribeAudioBuffer(audioBuffer, filename);
 
     let durationSeconds = Number(req.body.RecordingDuration);
     if (!Number.isFinite(durationSeconds) || durationSeconds < 0) {
@@ -321,12 +366,13 @@ app.post("/api/twilio/recording-status", async (req, res) => {
     const entry = {
       id: crypto.randomUUID(),
       nickname: fromNumber ? `Caller ${maskPhone(fromNumber)}` : "Phone Caller",
-      worry: transcriptionText || "Worry shared by phone call.",
+      worry: transcriptionText || transcript || "Worry shared by phone call.",
       locationHint: callerLocation,
       createdAt: new Date().toISOString(),
       durationSeconds,
       sizeBytes: audioBuffer.length,
       audioUrl: `/uploads/${encodeURIComponent(filename)}`,
+      transcript,
       source: "twilio",
       callerNumber: fromNumber,
       callerCity: sanitizeText(req.body.FromCity || req.body.CallerCity || "", 64),
@@ -368,15 +414,18 @@ app.post("/api/messages", upload.single("voice"), (req, res) => {
   }
 
   const stats = fs.statSync(req.file.path);
+  const fileBuffer = fs.readFileSync(req.file.path);
+  const transcript = await transcribeAudioBuffer(fileBuffer, req.file.filename);
   const message = {
     id: crypto.randomUUID(),
     nickname,
-    worry,
+    worry: worry || transcript,
     locationHint,
     createdAt: new Date().toISOString(),
     durationSeconds,
     sizeBytes: stats.size,
-    audioUrl: `/uploads/${encodeURIComponent(req.file.filename)}`
+    audioUrl: `/uploads/${encodeURIComponent(req.file.filename)}`,
+    transcript
   };
 
   const messages = readMessages();
