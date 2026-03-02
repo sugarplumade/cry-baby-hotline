@@ -65,6 +65,22 @@ function chunkTranscript(text) {
   return chunks.slice(0, 18);
 }
 
+function buildTranscriptTimeline(text) {
+  const chunks = chunkTranscript(text);
+  let totalWords = 0;
+  const timeline = chunks.map((chunk) => {
+    const words = chunk.split(/\s+/).filter(Boolean).length || 1;
+    totalWords += words;
+    return { chunk, words, cumulativeWords: totalWords };
+  });
+
+  return {
+    chunks,
+    timeline,
+    totalWords: totalWords || 1
+  };
+}
+
 function classifyEmotion(message) {
   const haystack = `${message.worry || ""} ${message.locationHint || ""}`.toLowerCase();
 
@@ -165,23 +181,25 @@ function buildOrbitCard(message, index) {
 
   const transcript = document.createElement("p");
   transcript.className = "orbit-transcript";
-  const transcriptChunks = chunkTranscript(message.transcript || message.worry);
-  transcript.textContent = transcriptChunks[0];
+  const transcriptTimeline = buildTranscriptTimeline(message.transcript || message.worry);
+  transcript.textContent = transcriptTimeline.chunks[0];
 
   const player = document.createElement("audio");
   player.controls = false;
   player.preload = "none";
   player.src = message.audioUrl;
   const updateTranscriptChunk = () => {
-    if (!transcriptChunks.length) return;
+    if (!transcriptTimeline.timeline.length) return;
     if (!Number.isFinite(player.duration) || player.duration <= 0) {
-      transcript.textContent = transcriptChunks[0];
+      transcript.textContent = transcriptTimeline.chunks[0];
       return;
     }
 
     const ratio = Math.min(0.999, Math.max(0, player.currentTime / player.duration));
-    const chunkIndex = Math.min(transcriptChunks.length - 1, Math.floor(ratio * transcriptChunks.length));
-    transcript.textContent = transcriptChunks[chunkIndex];
+    const targetWords = Math.max(1, ratio * transcriptTimeline.totalWords);
+    const chunkIndex = transcriptTimeline.timeline.findIndex((entry) => targetWords <= entry.cumulativeWords);
+    transcript.textContent =
+      transcriptTimeline.timeline[chunkIndex === -1 ? transcriptTimeline.timeline.length - 1 : chunkIndex].chunk;
   };
   player.addEventListener("play", () => {
     startMouthAnimation(player);
@@ -194,14 +212,14 @@ function buildOrbitCard(message, index) {
     stopMouthAnimation(player);
     article.dataset.active = "false";
     article.dataset.popping = "false";
-    transcript.textContent = transcriptChunks[0];
+    transcript.textContent = transcriptTimeline.chunks[0];
     resumeAllOrbits();
   });
   player.addEventListener("ended", () => {
     stopMouthAnimation(player);
     article.dataset.active = "false";
     article.dataset.popping = "false";
-    transcript.textContent = transcriptChunks[0];
+    transcript.textContent = transcriptTimeline.chunks[0];
     resumeAllOrbits();
     player.currentTime = 0;
   });
