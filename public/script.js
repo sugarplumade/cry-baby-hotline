@@ -37,6 +37,34 @@ function buildOrbitSummary(message) {
   return duration === "Duration unknown" ? lead : `${lead} ${duration}.`;
 }
 
+function chunkTranscript(text) {
+  const clean = String(text || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!clean) return ["No transcript available."];
+
+  const clauses = clean
+    .split(/(?<=[.!?])\s+|,\s+|;\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  const chunks = [];
+  clauses.forEach((clause) => {
+    const words = clause.split(/\s+/).filter(Boolean);
+    if (words.length <= 7) {
+      chunks.push(clause);
+      return;
+    }
+
+    for (let index = 0; index < words.length; index += 5) {
+      chunks.push(words.slice(index, index + 5).join(" "));
+    }
+  });
+
+  return chunks.slice(0, 18);
+}
+
 function classifyEmotion(message) {
   const haystack = `${message.worry || ""} ${message.locationHint || ""}`.toLowerCase();
 
@@ -137,28 +165,47 @@ function buildOrbitCard(message, index) {
 
   const transcript = document.createElement("p");
   transcript.className = "orbit-transcript";
-  transcript.textContent = message.transcript || message.worry || "No transcript available.";
+  const transcriptChunks = chunkTranscript(message.transcript || message.worry);
+  transcript.textContent = transcriptChunks[0];
 
   const player = document.createElement("audio");
   player.controls = false;
   player.preload = "none";
   player.src = message.audioUrl;
+  const updateTranscriptChunk = () => {
+    if (!transcriptChunks.length) return;
+    if (!Number.isFinite(player.duration) || player.duration <= 0) {
+      transcript.textContent = transcriptChunks[0];
+      return;
+    }
+
+    const ratio = Math.min(0.999, Math.max(0, player.currentTime / player.duration));
+    const chunkIndex = Math.min(transcriptChunks.length - 1, Math.floor(ratio * transcriptChunks.length));
+    transcript.textContent = transcriptChunks[chunkIndex];
+  };
   player.addEventListener("play", () => {
     startMouthAnimation(player);
     pauseAllOrbits();
     article.dataset.active = "true";
+    article.dataset.popping = "true";
+    updateTranscriptChunk();
   });
   player.addEventListener("pause", () => {
     stopMouthAnimation(player);
     article.dataset.active = "false";
+    article.dataset.popping = "false";
+    transcript.textContent = transcriptChunks[0];
     resumeAllOrbits();
   });
   player.addEventListener("ended", () => {
     stopMouthAnimation(player);
     article.dataset.active = "false";
+    article.dataset.popping = "false";
+    transcript.textContent = transcriptChunks[0];
     resumeAllOrbits();
     player.currentTime = 0;
   });
+  player.addEventListener("timeupdate", updateTranscriptChunk);
 
   article.append(city, transcript, player);
 

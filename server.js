@@ -26,6 +26,8 @@ const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || "";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_TRANSCRIBE_MODEL = process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe";
 const TRANSCRIPTION_ADMIN_TOKEN = process.env.TRANSCRIPTION_ADMIN_TOKEN || "";
+const CALL_CONTEXT_TTL_MS = 1000 * 60 * 60 * 6;
+const callContextBySid = new Map();
 const AREA_CODE_LOCATIONS = {
   "201": "North Jersey",
   "202": "Washington DC",
@@ -138,6 +140,39 @@ function buildCallerLocation(body, fromNumber) {
   if (state) return state;
 
   return inferLocationFromPhone(fromNumber) || "Location withheld";
+}
+
+function rememberCallContext(body) {
+  const callSid = sanitizeText(body.CallSid || "", 80);
+  if (!callSid) return;
+
+  callContextBySid.set(callSid, {
+    fromNumber: sanitizeText(body.From || body.Caller || "", 64),
+    city: sanitizeText(body.FromCity || body.CallerCity || "", 64),
+    state: sanitizeText(body.FromState || body.CallerState || "", 32),
+    storedAt: Date.now()
+  });
+}
+
+function getCallContext(callSid) {
+  const cleanSid = sanitizeText(callSid || "", 80);
+  if (!cleanSid) return null;
+
+  const cached = callContextBySid.get(cleanSid);
+  if (!cached) return null;
+  if (Date.now() - cached.storedAt > CALL_CONTEXT_TTL_MS) {
+    callContextBySid.delete(cleanSid);
+    return null;
+  }
+
+  return cached;
+}
+
+function clearCallContext(callSid) {
+  const cleanSid = sanitizeText(callSid || "", 80);
+  if (cleanSid) {
+    callContextBySid.delete(cleanSid);
+  }
 }
 
 function backfillExistingMessages() {
@@ -313,6 +348,7 @@ const upload = multer({
 });
 
 app.all("/api/twilio/voice", (_req, res) => {
+  rememberCallContext(_req.body || {});
   const actionUrl = escapeXml(buildPublicUrl("/api/twilio/recording-complete"));
   const statusCallbackUrl = escapeXml(buildPublicUrl("/api/twilio/recording-status"));
   const greeting = escapeXml(TWILIO_GREETING);
@@ -328,6 +364,7 @@ app.all("/api/twilio/voice", (_req, res) => {
 });
 
 app.post("/api/twilio/recording-complete", (_req, res) => {
+  rememberCallContext(_req.body || {});
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say>Thank you. Your message has been recorded.</Say>
@@ -399,8 +436,20 @@ app.post("/api/twilio/recording-status", async (req, res) => {
     }
 
     const transcriptionText = sanitizeText(req.body.TranscriptionText || "", 140);
-    const fromNumber = sanitizeText(req.body.From || "", 64);
-    const callerLocation = buildCallerLocation(req.body, fromNumber);
+    const cachedCall = getCallContext(req.body.CallSid);
+    const fromNumber = sanitizeText(req.body.From || cachedCall?.fromNumber || "", 64);
+    const callerCity = sanitizeText(req.body.FromCity || req.body.CallerCity || cachedCall?.city || "", 64);
+    const callerState = sanitizeText(req.body.FromState || req.body.CallerState || cachedCall?.state || "", 32);
+    const callerLocation = buildCallerLocation(
+      {
+        ...cachedCall,
+        ...req.body,
+        From: fromNumber,
+        FromCity: callerCity,
+        FromState: callerState
+      },
+      fromNumber
+    );
 
     const entry = {
       id: crypto.randomUUID(),
@@ -414,8 +463,8 @@ app.post("/api/twilio/recording-status", async (req, res) => {
       transcript,
       source: "twilio",
       callerNumber: fromNumber,
-      callerCity: sanitizeText(req.body.FromCity || req.body.CallerCity || "", 64),
-      callerState: sanitizeText(req.body.FromState || req.body.CallerState || "", 32),
+      callerCity,
+      callerState,
       twilioCallSid: sanitizeText(req.body.CallSid || "", 80),
       twilioRecordingSid
     };
@@ -423,6 +472,7 @@ app.post("/api/twilio/recording-status", async (req, res) => {
     const messages = readMessages();
     messages.push(entry);
     writeMessages(messages);
+    clearCallContext(req.body.CallSid);
 
     return res.status(200).json({ message: "Recording ingested." });
   } catch (error) {

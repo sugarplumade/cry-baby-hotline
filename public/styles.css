@@ -274,7 +274,7 @@ h1 {
 .orbit-card {
   width: var(--moon-size, min(240px, 28vw));
   aspect-ratio: 1 / 1;
-  padding: 1rem 0.9rem;
+  padding: 1rem 1rem;
   border-radius: 50%;
   background:
     radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.28), transparent 34%),
@@ -289,6 +289,7 @@ h1 {
   justify-content: center;
   align-items: center;
   text-align: center;
+  overflow: hidden;
   transform:
     translateX(var(--orbit-radius, 330px))
     translateY(-50%)
@@ -320,11 +321,19 @@ h1 {
 
 .orbit-transcript {
   display: none;
-  margin-top: 0.45rem;
-  font-size: 0.88rem;
-  line-height: 1.32;
+  margin-top: 0.35rem;
+  padding-inline: 0.35rem;
+  font-size: 0.82rem;
+  line-height: 1.24;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: rgba(255, 255, 255, 0.92);
-  max-width: 15ch;
+  max-width: min(11ch, 72%);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  transform: scale(0.82);
+  opacity: 0;
+  transition: transform 160ms ease, opacity 160ms ease;
 }
 
 .orbit-card audio {
@@ -337,6 +346,11 @@ h1 {
 
 .orbit-card[data-active="true"] .orbit-transcript {
   display: block;
+}
+
+.orbit-card[data-popping="true"] .orbit-transcript {
+  transform: scale(1);
+  opacity: 1;
 }
 
 .orbit-shell-1 { --orbit-radius: min(42vw, 430px); --orbit-duration: 38s; --orbit-delay: 0s; --orbit-depth: 80px; --orbit-scale: 1.06; --float-duration: 7s; }
