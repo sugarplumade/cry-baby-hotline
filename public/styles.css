@@ -38,6 +38,38 @@ body {
   pointer-events: none;
 }
 
+.transcript-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.transcript-overlay[data-active="true"] {
+  opacity: 1;
+}
+
+.transcript-overlay-text {
+  width: min(92vw, 1400px);
+  margin: 0;
+  padding: 0 4vw;
+  font-family: "Special Elite", serif;
+  font-size: clamp(2.4rem, 8vw, 7rem);
+  font-weight: 700;
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  text-align: center;
+  text-transform: uppercase;
+  color: rgba(255, 248, 236, 0.92);
+  text-shadow:
+    0 0 16px rgba(0, 0, 0, 0.48),
+    0 0 42px rgba(255, 122, 31, 0.18);
+}
+
 .space-field {
   overflow: hidden;
 }
@@ -110,7 +142,7 @@ body {
 .cosmos-shell,
 .upload-shell {
   position: relative;
-  z-index: 2;
+  z-index: 4;
   width: min(1180px, 96vw);
   margin: 0 auto;
   padding: 1rem 0 2rem;
@@ -594,6 +626,13 @@ button:disabled {
     border-radius: 18px;
     align-items: flex-start;
     text-align: left;
+  }
+
+  .transcript-overlay-text {
+    width: 94vw;
+    padding: 0 2vw;
+    font-size: clamp(2rem, 11vw, 4.4rem);
+    line-height: 1;
   }
 
   .orbit-empty {
