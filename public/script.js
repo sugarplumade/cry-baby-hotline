@@ -268,6 +268,14 @@ function buildOrbitCard(message, index) {
 
   article.append(city, meta, transcript, player);
 
+  article.addEventListener("mouseenter", () => {
+    shell.classList.add("is-hover-paused");
+  });
+
+  article.addEventListener("mouseleave", () => {
+    shell.classList.remove("is-hover-paused");
+  });
+
   article.addEventListener("click", () => {
     if (player.paused || player.ended) {
       const playAttempt = player.play();

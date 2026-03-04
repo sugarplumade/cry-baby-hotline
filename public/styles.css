@@ -285,7 +285,9 @@ h1 {
 }
 
 .orbit-shell.is-paused,
-.orbit-shell.is-paused .orbit-card {
+.orbit-shell.is-paused .orbit-card,
+.orbit-shell.is-hover-paused,
+.orbit-shell.is-hover-paused .orbit-card {
   animation-play-state: paused;
 }
 
