@@ -280,7 +280,7 @@ async function loadOrbitalMessages() {
     return;
   }
 
-  messages.slice(0, 6).forEach((message, index) => {
+  messages.forEach((message, index) => {
     orbitalFeedEl.appendChild(buildOrbitCard(message, index));
   });
 }
