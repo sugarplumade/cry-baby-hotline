@@ -173,14 +173,41 @@ function resumeAllOrbits() {
   orbitShells.forEach((shell) => shell.classList.remove("is-paused"));
 }
 
+function applyOrbitLayout(shell, article, index) {
+  const ring = Math.floor(index / 6);
+  const slot = index % 6;
+  const radius = Math.min(980, 290 + ring * 96 + (slot % 2) * 12);
+  const duration = 28 + ring * 4 + (slot % 3) * 2;
+  const delay = -((duration / 6) * slot + ring * 1.7);
+  const depth = (slot % 2 === 0 ? 1 : -1) * (50 + (slot % 3) * 30 + ring * 10);
+  const scale = Math.max(0.62, 1 - ring * 0.08 + (slot % 2 === 0 ? 0.03 : -0.03));
+  const floatDuration = 5.8 + (slot % 4) * 0.8 + ring * 0.15;
+  const spinDuration = 15 + (slot % 5) * 1.8 + ring * 0.4;
+  const glowDuration = 4.8 + (slot % 3) * 0.75;
+
+  shell.style.setProperty("--orbit-radius", `min(46vw, ${radius}px)`);
+  shell.style.setProperty("--orbit-duration", `${duration}s`);
+  shell.style.setProperty("--orbit-delay", `${delay}s`);
+  shell.style.setProperty("--orbit-depth", `${depth}px`);
+  shell.style.setProperty("--orbit-scale", scale.toFixed(2));
+  shell.style.setProperty("--float-duration", `${floatDuration.toFixed(1)}s`);
+  shell.style.setProperty("--spin-duration", `${spinDuration.toFixed(1)}s`);
+  shell.style.setProperty("--glow-duration", `${glowDuration.toFixed(1)}s`);
+
+  const angularOffset = slot * 60 + ring * 11;
+  shell.style.transform = `rotate(${angularOffset}deg)`;
+  article.style.transform += ` rotate(${(-angularOffset).toFixed(2)}deg)`;
+}
+
 function buildOrbitCard(message, index) {
   const shell = document.createElement("div");
-  shell.className = `orbit-shell orbit-shell-${(index % 6) + 1}`;
+  shell.className = "orbit-shell";
   orbitShells.add(shell);
 
   const article = document.createElement("article");
   article.className = "orbit-card";
   article.style.setProperty("--moon-size", getMoonSize(message.durationSeconds));
+  applyOrbitLayout(shell, article, index);
   const emotion = classifyEmotion(message);
   article.dataset.emotion = emotion;
   article.dataset.active = "false";
