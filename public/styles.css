@@ -118,9 +118,60 @@ body {
 
 .micro-nav {
   display: flex;
+  align-items: center;
+  gap: 0.85rem;
   justify-content: flex-end;
   margin-bottom: 0.4rem;
 }
+
+.mood-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.34rem;
+  margin-right: auto;
+}
+
+.mood-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.16rem 0.22rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mood-dot-bullet {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  box-shadow: 0 0 12px currentColor;
+}
+
+.mood-dot-label {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.86);
+  transition: max-width 180ms ease, opacity 180ms ease;
+}
+
+.mood-dot[data-open="true"] .mood-dot-label {
+  max-width: 8rem;
+  opacity: 1;
+}
+
+.mood-dot[data-mood="fear"] { color: rgba(111, 201, 255, 0.92); }
+.mood-dot[data-mood="anger"] { color: rgba(255, 107, 107, 0.92); }
+.mood-dot[data-mood="grief"] { color: rgba(180, 158, 255, 0.92); }
+.mood-dot[data-mood="sadness"] { color: rgba(124, 148, 255, 0.92); }
+.mood-dot[data-mood="hope"] { color: rgba(148, 255, 205, 0.92); }
+.mood-dot[data-mood="confusion"] { color: rgba(255, 214, 112, 0.92); }
+.mood-dot[data-mood="longing"] { color: rgba(255, 170, 214, 0.92); }
 
 .micro-nav a {
   color: rgba(255, 255, 255, 0.9);
@@ -561,6 +612,18 @@ button:disabled {
 }
 
 @media (max-width: 900px) {
+  .micro-nav {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .mood-dots {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 0.35rem;
+    flex-wrap: wrap;
+  }
+
   .cosmos-stage,
   .orbital-feed {
     min-height: auto;

@@ -4,6 +4,7 @@ const submitBtn = document.getElementById("submit-btn");
 const statusEl = document.getElementById("status");
 const orbitalFeedEl = document.getElementById("orbital-feed");
 const unsmileyMarkEl = document.querySelector(".unsmiley-mark");
+const moodDotEls = Array.from(document.querySelectorAll(".mood-dot"));
 const activePlayers = new Set();
 const orbitShells = new Set();
 let mouthAnimationFrame = null;
@@ -384,4 +385,16 @@ if (uploadForm) {
 
 if (orbitalFeedEl) {
   loadOrbitalMessages().catch(() => {});
+}
+
+if (moodDotEls.length) {
+  moodDotEls.forEach((dot) => {
+    dot.addEventListener("click", () => {
+      const isOpen = dot.dataset.open === "true";
+      moodDotEls.forEach((item) => {
+        item.dataset.open = "false";
+      });
+      dot.dataset.open = isOpen ? "false" : "true";
+    });
+  });
 }
