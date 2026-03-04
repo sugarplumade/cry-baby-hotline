@@ -23,6 +23,16 @@ function formatDate(iso) {
   }).format(date);
 }
 
+function formatDateTime(iso) {
+  const date = new Date(iso);
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(date);
+}
+
 function formatDuration(value) {
   if (!Number.isFinite(value) || value <= 0) return "Duration unknown";
   const mins = Math.floor(value / 60);
@@ -179,6 +189,10 @@ function buildOrbitCard(message, index) {
   city.className = "orbit-city";
   city.textContent = (message.locationHint || "Unknown").split(",")[0];
 
+  const meta = document.createElement("p");
+  meta.className = "orbit-meta";
+  meta.textContent = formatDateTime(message.createdAt);
+
   const transcript = document.createElement("p");
   transcript.className = "orbit-transcript";
   const transcriptTimeline = buildTranscriptTimeline(message.transcript || message.worry);
@@ -225,7 +239,7 @@ function buildOrbitCard(message, index) {
   });
   player.addEventListener("timeupdate", updateTranscriptChunk);
 
-  article.append(city, transcript, player);
+  article.append(city, meta, transcript, player);
 
   article.addEventListener("click", () => {
     if (player.paused || player.ended) {

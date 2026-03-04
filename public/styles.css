@@ -303,6 +303,7 @@ h1 {
     inset 12px 14px 30px rgba(255, 255, 255, 0.12),
     inset -18px -24px 34px rgba(0, 0, 0, 0.2),
     0 0 28px var(--moon-glow, rgba(255, 255, 255, 0.12)),
+    0 0 64px color-mix(in srgb, var(--moon-glow, rgba(255, 255, 255, 0.12)) 80%, transparent),
     0 16px 44px rgba(0, 0, 0, 0.38);
   display: flex;
   flex-direction: column;
@@ -318,7 +319,8 @@ h1 {
   animation:
     orbitCounter var(--orbit-duration, 34s) linear infinite,
     moonFloat var(--float-duration, 6s) ease-in-out infinite,
-    moonSpin var(--spin-duration, 18s) linear infinite;
+    moonSpin var(--spin-duration, 18s) linear infinite,
+    moonGlowPulse var(--glow-duration, 5.6s) ease-in-out infinite;
   animation-delay: var(--orbit-delay, 0s);
   backdrop-filter: blur(4px);
   cursor: pointer;
@@ -338,6 +340,15 @@ h1 {
   font-weight: 700;
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.96);
+}
+
+.orbit-meta {
+  margin: 0.22rem 0 0;
+  font-size: 0.62rem;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .orbit-transcript {
@@ -362,6 +373,10 @@ h1 {
 }
 
 .orbit-card[data-active="true"] .orbit-city {
+  display: none;
+}
+
+.orbit-card[data-active="true"] .orbit-meta {
   display: none;
 }
 
@@ -522,6 +537,25 @@ button:disabled {
   from { filter: hue-rotate(0deg) saturate(1); }
   50% { filter: hue-rotate(-8deg) saturate(1.08); }
   to { filter: hue-rotate(0deg) saturate(1); }
+}
+
+@keyframes moonGlowPulse {
+  0%, 100% {
+    box-shadow:
+      inset 12px 14px 30px rgba(255, 255, 255, 0.12),
+      inset -18px -24px 34px rgba(0, 0, 0, 0.2),
+      0 0 28px var(--moon-glow, rgba(255, 255, 255, 0.12)),
+      0 0 52px color-mix(in srgb, var(--moon-glow, rgba(255, 255, 255, 0.12)) 72%, transparent),
+      0 16px 44px rgba(0, 0, 0, 0.38);
+  }
+  50% {
+    box-shadow:
+      inset 12px 14px 30px rgba(255, 255, 255, 0.16),
+      inset -18px -24px 34px rgba(0, 0, 0, 0.22),
+      0 0 34px var(--moon-glow, rgba(255, 255, 255, 0.12)),
+      0 0 78px color-mix(in srgb, var(--moon-glow, rgba(255, 255, 255, 0.12)) 88%, transparent),
+      0 16px 44px rgba(0, 0, 0, 0.42);
+  }
 }
 
 @media (max-width: 900px) {
