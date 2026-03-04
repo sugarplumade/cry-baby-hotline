@@ -4,8 +4,6 @@ const submitBtn = document.getElementById("submit-btn");
 const statusEl = document.getElementById("status");
 const orbitalFeedEl = document.getElementById("orbital-feed");
 const unsmileyMarkEl = document.querySelector(".unsmiley-mark");
-const transcriptOverlayEl = document.getElementById("transcript-overlay");
-const transcriptOverlayTextEl = document.getElementById("transcript-overlay-text");
 const activePlayers = new Set();
 const orbitShells = new Set();
 let mouthAnimationFrame = null;
@@ -175,25 +173,6 @@ function resumeAllOrbits() {
   orbitShells.forEach((shell) => shell.classList.remove("is-paused"));
 }
 
-function setOverlayText(text) {
-  if (!transcriptOverlayTextEl) return;
-  transcriptOverlayTextEl.textContent = text || "";
-}
-
-function showOverlay(text) {
-  if (!transcriptOverlayEl) return;
-  setOverlayText(text);
-  transcriptOverlayEl.dataset.active = "true";
-  transcriptOverlayEl.setAttribute("aria-hidden", "false");
-}
-
-function hideOverlay() {
-  if (!transcriptOverlayEl) return;
-  transcriptOverlayEl.dataset.active = "false";
-  transcriptOverlayEl.setAttribute("aria-hidden", "true");
-  setOverlayText("");
-}
-
 function applyOrbitLayout(shell, article, index) {
   const ring = Math.floor(index / 6);
   const slot = index % 6;
@@ -254,17 +233,14 @@ function buildOrbitCard(message, index) {
     if (!transcriptTimeline.timeline.length) return;
     if (!Number.isFinite(player.duration) || player.duration <= 0) {
       transcript.textContent = transcriptTimeline.chunks[0];
-      showOverlay(transcriptTimeline.chunks[0]);
       return;
     }
 
     const ratio = Math.min(0.999, Math.max(0, player.currentTime / player.duration));
     const targetWords = Math.max(1, ratio * transcriptTimeline.totalWords);
     const chunkIndex = transcriptTimeline.timeline.findIndex((entry) => targetWords <= entry.cumulativeWords);
-    const chunkText =
+    transcript.textContent =
       transcriptTimeline.timeline[chunkIndex === -1 ? transcriptTimeline.timeline.length - 1 : chunkIndex].chunk;
-    transcript.textContent = chunkText;
-    showOverlay(chunkText);
   };
   player.addEventListener("play", () => {
     startMouthAnimation(player);
@@ -279,7 +255,6 @@ function buildOrbitCard(message, index) {
     article.dataset.popping = "false";
     transcript.textContent = transcriptTimeline.chunks[0];
     resumeAllOrbits();
-    hideOverlay();
   });
   player.addEventListener("ended", () => {
     stopMouthAnimation(player);
@@ -288,7 +263,6 @@ function buildOrbitCard(message, index) {
     transcript.textContent = transcriptTimeline.chunks[0];
     resumeAllOrbits();
     player.currentTime = 0;
-    hideOverlay();
   });
   player.addEventListener("timeupdate", updateTranscriptChunk);
 
