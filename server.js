@@ -28,6 +28,9 @@ const OPENAI_TRANSCRIBE_MODEL = process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-m
 const TRANSCRIPTION_ADMIN_TOKEN = process.env.TRANSCRIPTION_ADMIN_TOKEN || "";
 const CALL_CONTEXT_TTL_MS = 1000 * 60 * 60 * 6;
 const callContextBySid = new Map();
+const CALLER_NUMBER_LOCATION_OVERRIDES = {
+  "13016411394": "Los Angeles"
+};
 const AREA_CODE_LOCATIONS = {
   "201": "North Jersey",
   "202": "Washington DC",
@@ -125,8 +128,14 @@ function maskPhone(value) {
   return `***${clean.slice(-4)}`;
 }
 
+function normalizePhoneDigits(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
 function inferLocationFromPhone(value) {
-  const digits = String(value || "").replace(/\D/g, "");
+  const digits = normalizePhoneDigits(value);
+  const exactOverride = CALLER_NUMBER_LOCATION_OVERRIDES[digits];
+  if (exactOverride) return exactOverride;
   const areaCode = digits.length === 11 && digits.startsWith("1") ? digits.slice(1, 4) : digits.slice(0, 3);
   return AREA_CODE_LOCATIONS[areaCode] || "";
 }
@@ -181,6 +190,21 @@ function backfillExistingMessages() {
 
   const updated = messages.map((message) => {
     if (message.source !== "twilio") return message;
+
+    const candidateNumber =
+      message.callerNumber ||
+      message.fromNumber ||
+      (typeof message.locationHint === "string" && message.locationHint.includes("+") ? message.locationHint : "");
+    const exactOrAreaLocation = inferLocationFromPhone(candidateNumber);
+
+    if (exactOrAreaLocation === "Los Angeles" && message.locationHint !== "Los Angeles") {
+      changed = true;
+      return {
+        ...message,
+        locationHint: "Los Angeles"
+      };
+    }
+
     if (message.locationHint && message.locationHint !== "Location withheld") return message;
 
     const manualLocation = DURATION_LOCATION_OVERRIDES[message.durationSeconds];
@@ -192,11 +216,7 @@ function backfillExistingMessages() {
       };
     }
 
-    const candidateNumber =
-      message.callerNumber ||
-      message.fromNumber ||
-      (typeof message.locationHint === "string" && message.locationHint.includes("+") ? message.locationHint : "");
-    const inferred = inferLocationFromPhone(candidateNumber);
+    const inferred = exactOrAreaLocation;
 
     if (inferred) {
       changed = true;
