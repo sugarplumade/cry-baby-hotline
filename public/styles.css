@@ -1,9 +1,9 @@
 :root {
-  --bg: #ececec;
+  --bg: #efefef;
   --panel: #f7f7f7;
   --text: #111;
-  --muted: rgba(17, 17, 17, 0.64);
-  --line: rgba(0, 0, 0, 0.15);
+  --muted: rgba(17, 17, 17, 0.62);
+  --line: rgba(0, 0, 0, 0.14);
 }
 
 * {
@@ -18,17 +18,22 @@ body {
   font-family: "Outfit", sans-serif;
 }
 
-.hierarchy-page {
-  min-height: 100vh;
-  padding: 1rem 1rem 1.8rem;
+h1,
+h2 {
+  font-family: "Special Elite", serif;
 }
 
-.hierarchy-shell {
-  width: min(1300px, 100%);
+.list-page {
+  min-height: 100vh;
+  padding: 1rem 1rem 2rem;
+}
+
+.list-shell {
+  width: min(1220px, 100%);
   margin: 0 auto;
 }
 
-.hierarchy-nav {
+.list-nav {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -36,34 +41,30 @@ body {
   margin-bottom: 0.9rem;
 }
 
-.hierarchy-kicker {
+.list-kicker {
   margin: 0;
   font-size: 0.68rem;
-  text-transform: uppercase;
   letter-spacing: 0.14em;
+  text-transform: uppercase;
   font-weight: 700;
   color: var(--muted);
 }
 
-h1,
-h2 {
-  font-family: "Special Elite", serif;
-}
-
 h1 {
-  margin: 0.18rem 0 0.2rem;
-  font-size: clamp(1.6rem, 3.8vw, 2.8rem);
+  margin: 0.14rem 0 0.24rem;
+  font-size: clamp(2rem, 5vw, 3.6rem);
   line-height: 0.95;
 }
 
 .hotline-number {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
 
-.hierarchy-nav a {
+.list-nav a,
+.micro-nav a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -72,131 +73,106 @@ h1 {
   border: 1px solid var(--line);
   background: #fff;
   border-radius: 999px;
-  padding: 0.42rem 0.8rem;
+  padding: 0.44rem 0.82rem;
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 700;
 }
 
-.hierarchy-feed {
-  position: relative;
-  min-height: 74vh;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: #e7e7e7;
+.calls-feed {
+  border: 1px solid var(--line);
   border-radius: 14px;
-  overflow: hidden;
+  background: #e9e9e9;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.7rem;
 }
 
-.hierarchy-empty {
+.calls-empty {
   margin: 0;
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+  padding: 1rem;
   color: var(--muted);
   font-weight: 600;
 }
 
-.hierarchy-group {
-  position: absolute;
-  left: var(--group-x, 50%);
-  top: var(--group-y, 50%);
-  width: var(--group-size, 280px);
-  height: var(--group-size, 280px);
-  transform: translate(-50%, -50%);
-  z-index: calc(10 + var(--group-rank, 0));
+.call-card {
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.76rem 0.84rem 0.7rem;
+  display: grid;
+  gap: 0.4rem;
+  background: #fff;
+  transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
-.hierarchy-group[data-mood="fear"] { --group-fill: #66b6ff; --group-stroke: #2f7ad9; --bubble-fill: #7ec4ff; }
-.hierarchy-group[data-mood="anger"] { --group-fill: #ff8b8b; --group-stroke: #d95050; --bubble-fill: #ff9f9f; }
-.hierarchy-group[data-mood="grief"] { --group-fill: #bf99ec; --group-stroke: #8d5ac9; --bubble-fill: #cbacef; }
-.hierarchy-group[data-mood="sadness"] { --group-fill: #96aff5; --group-stroke: #5a79ca; --bubble-fill: #a9bef8; }
-.hierarchy-group[data-mood="hope"] { --group-fill: #93e6c6; --group-stroke: #47a986; --bubble-fill: #a5edd1; }
-.hierarchy-group[data-mood="confusion"] { --group-fill: #f6d08a; --group-stroke: #c79030; --bubble-fill: #f8dca4; }
-.hierarchy-group[data-mood="longing"] { --group-fill: #f3a4cf; --group-stroke: #c45a95; --bubble-fill: #f6b8da; }
-
-.hierarchy-group-core {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: var(--group-fill, #9bb8f2);
-  box-shadow: inset 0 0 0 6px var(--group-stroke, #5a79ca);
-  overflow: hidden;
+.call-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
-.hierarchy-group-label {
-  position: absolute;
-  left: 50%;
-  top: -1.1rem;
-  transform: translateX(-50%);
-  margin: 0;
-  padding: 0.05rem 0.55rem;
-  border-radius: 999px;
-  background: var(--group-stroke, #5a79ca);
-  color: #fff;
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  white-space: nowrap;
+.call-card.is-playing {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.16);
 }
 
-.hierarchy-bubble {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  border: 0;
-  border-radius: 50%;
-  cursor: pointer;
+.call-card[data-mood="fear"] { background: #7ec4ff; border-color: #5fa8e5; }
+.call-card[data-mood="anger"] { background: #ff9f9f; border-color: #dc7070; }
+.call-card[data-mood="grief"] { background: #cbacef; border-color: #ab86d7; }
+.call-card[data-mood="sadness"] { background: #a9bef8; border-color: #869fdf; }
+.call-card[data-mood="hope"] { background: #a5edd1; border-color: #7ec5a8; }
+.call-card[data-mood="confusion"] { background: #f8dca4; border-color: #d8b66e; }
+.call-card[data-mood="longing"] { background: #f6b8da; border-color: #d68bb7; }
+
+.call-header {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.12rem;
-  padding: 0.28rem;
-  overflow: hidden;
-  color: rgba(255, 255, 255, 0.96);
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.38), transparent 32%),
-    var(--bubble-fill, #b9cdf6);
-  box-shadow: inset 0 -8px 12px rgba(0, 0, 0, 0.12);
-  transition: transform 140ms ease, filter 140ms ease;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
 }
 
-.hierarchy-bubble:hover {
-  filter: brightness(1.06);
-  transform: translate(-50%, -50%) scale(1.03);
+.call-city,
+.call-date,
+.call-mood,
+.call-text {
+  margin: 0;
 }
 
-.hierarchy-bubble.is-active {
-  outline: 2px solid rgba(255, 255, 255, 0.9);
-  filter: brightness(1.1);
-}
-
-.hierarchy-bubble-city {
-  font-size: clamp(0.52rem, 0.8vw, 1.05rem);
+.call-city {
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1.05;
-  text-align: center;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
-  max-width: 92%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0.02em;
 }
 
-.hierarchy-bubble-date {
-  font-size: clamp(0.38rem, 0.55vw, 0.64rem);
-  line-height: 1;
-  letter-spacing: 0.05em;
+.call-date {
+  font-size: 0.66rem;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.08em;
+  color: rgba(17, 17, 17, 0.7);
 }
 
-.hierarchy-bubble audio {
-  display: none;
+.call-mood {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  border-radius: 999px;
+  padding: 0.14rem 0.46rem;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.call-text {
+  font-size: 0.9rem;
+  line-height: 1.28;
+  color: rgba(17, 17, 17, 0.92);
+}
+
+.call-player {
+  width: 100%;
+  height: 34px;
 }
 
 .upload-shell {
@@ -211,29 +187,15 @@ h1 {
   margin-bottom: 0.8rem;
 }
 
-.micro-nav a {
-  text-decoration: none;
-  color: #111;
-  border: 1px solid var(--line);
-  background: #fff;
-  border-radius: 999px;
-  padding: 0.42rem 0.8rem;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 700;
-}
-
 .upload-panel {
-  padding: 1.15rem;
-  border-radius: 18px;
   border: 1px solid var(--line);
+  border-radius: 18px;
   background: var(--panel);
+  padding: 1.15rem;
 }
 
 .upload-panel h1 {
-  margin-top: 0;
-  margin-bottom: 0.9rem;
+  margin: 0 0 0.88rem;
 }
 
 .stack {
@@ -253,6 +215,7 @@ input[type="file"] {
   padding: 0.72rem;
   font: inherit;
   background: #fff;
+  color: #111;
 }
 
 button {
@@ -282,20 +245,13 @@ button:disabled {
   color: #b62222;
 }
 
-@media (max-width: 980px) {
-  .hierarchy-feed {
-    min-height: auto;
-    padding: 0.8rem;
-    display: grid;
-    gap: 1rem;
-    border-radius: 12px;
+@media (max-width: 760px) {
+  .list-nav {
+    flex-wrap: wrap;
   }
 
-  .hierarchy-group {
-    position: relative;
-    left: auto;
-    top: auto;
-    transform: none;
-    margin-inline: auto;
+  .calls-feed {
+    gap: 0.58rem;
+    padding: 0.58rem;
   }
 }
