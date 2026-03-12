@@ -14,67 +14,18 @@
     <link rel="icon" type="image/png" href="/crybabyredlogo.png" />
     <link rel="apple-touch-icon" href="/crybabyredlogo.png" />
   </head>
-  <body>
-    <div class="space-field">
-      <div class="warp-layer warp-layer-far"></div>
-      <div class="warp-layer warp-layer-mid"></div>
-      <div class="warp-layer warp-layer-near"></div>
-      <div class="nebula-haze"></div>
-    </div>
-    <div class="grain"></div>
-
-    <main class="cosmos-shell">
-      <nav class="micro-nav" aria-label="Primary">
-        <div class="mood-dots" aria-label="Mood legend">
-          <button class="mood-dot" type="button" data-mood="fear" aria-label="Reveal fear">
-            <span class="mood-dot-bullet"></span>
-            <span class="mood-dot-label">Fear</span>
-          </button>
-          <button class="mood-dot" type="button" data-mood="anger" aria-label="Reveal anger">
-            <span class="mood-dot-bullet"></span>
-            <span class="mood-dot-label">Anger</span>
-          </button>
-          <button class="mood-dot" type="button" data-mood="grief" aria-label="Reveal grief">
-            <span class="mood-dot-bullet"></span>
-            <span class="mood-dot-label">Grief</span>
-          </button>
-          <button class="mood-dot" type="button" data-mood="sadness" aria-label="Reveal sadness">
-            <span class="mood-dot-bullet"></span>
-            <span class="mood-dot-label">Sadness</span>
-          </button>
-          <button class="mood-dot" type="button" data-mood="hope" aria-label="Reveal hope">
-            <span class="mood-dot-bullet"></span>
-            <span class="mood-dot-label">Hope</span>
-          </button>
-          <button class="mood-dot" type="button" data-mood="confusion" aria-label="Reveal confusion">
-            <span class="mood-dot-bullet"></span>
-            <span class="mood-dot-label">Confusion</span>
-          </button>
-          <button class="mood-dot" type="button" data-mood="longing" aria-label="Reveal longing">
-            <span class="mood-dot-bullet"></span>
-            <span class="mood-dot-label">Longing</span>
-          </button>
+  <body class="hierarchy-page">
+    <main class="hierarchy-shell">
+      <nav class="hierarchy-nav" aria-label="Primary">
+        <div>
+          <p class="hierarchy-kicker">Public Listening Archive</p>
+          <h1>Cry Baby Hotline</h1>
+          <p class="hotline-number">(606) 217-6563</p>
         </div>
         <a href="/upload.html">Upload</a>
       </nav>
 
-      <section class="cosmos-stage">
-        <div class="hero-core">
-          <div class="unsmiley-mark" aria-hidden="true">
-            <span class="unsmiley-eye unsmiley-eye-left"></span>
-            <span class="unsmiley-eye unsmiley-eye-right"></span>
-            <span class="unsmiley-mouth"></span>
-          </div>
-          <div class="hero-copy">
-            <p class="label">Public Listening Archive</p>
-            <h1>Cry Baby Hotline</h1>
-            <p class="hotline-number">(606) 217-6563</p>
-            <p>A public wall of worry. Upload call recordings so people can hear what the neighborhood is carrying.</p>
-          </div>
-        </div>
-
-        <div id="orbital-feed" class="orbital-feed" aria-live="polite"></div>
-      </section>
+      <section id="hierarchy-feed" class="hierarchy-feed" aria-live="polite"></section>
     </main>
 
     <script src="/script.js"></script>
