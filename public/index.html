@@ -14,18 +14,70 @@
     <link rel="icon" type="image/png" href="/crybabyredlogo.png" />
     <link rel="apple-touch-icon" href="/crybabyredlogo.png" />
   </head>
-  <body class="list-page">
-    <main class="list-shell">
-      <nav class="list-nav" aria-label="Primary">
+  <body class="scene-page">
+    <main class="scene-shell">
+      <nav class="scene-nav" aria-label="Primary">
         <div>
-          <p class="list-kicker">Public Listening Archive</p>
+          <p class="scene-kicker">Public Listening Archive</p>
           <h1>Cry Baby Hotline</h1>
           <p class="hotline-number">(606) 217-6563</p>
         </div>
         <a href="/upload.html">Upload</a>
       </nav>
 
-      <section id="calls-feed" class="calls-feed" aria-live="polite"></section>
+      <section class="scene-hero" aria-labelledby="scene-title">
+        <div class="scene-copy">
+          <p class="scene-overline">Night Sequence</p>
+          <h2 id="scene-title">A caller steps into the booth and the city listens.</h2>
+          <p class="scene-description">
+            Start the scene to hear the latest voice message staged as a live encounter at the hotline.
+          </p>
+        </div>
+
+        <div id="scene-stage" class="scene-stage">
+          <div class="scene-sky"></div>
+          <div class="scene-moon"></div>
+          <div class="scene-stars"></div>
+          <div class="cityline cityline-back"></div>
+          <div class="cityline cityline-front"></div>
+          <div class="street-plane"></div>
+          <div class="street-reflection"></div>
+
+          <div class="phone-booth" aria-hidden="true">
+            <div class="booth-top"></div>
+            <div class="booth-glow"></div>
+            <div class="booth-frame booth-frame-left"></div>
+            <div class="booth-frame booth-frame-right"></div>
+            <div class="booth-frame booth-frame-center"></div>
+            <div class="booth-frame booth-frame-bottom"></div>
+          </div>
+
+          <div class="caller" id="scene-caller" aria-hidden="true">
+            <div class="caller-head"></div>
+            <div class="caller-body"></div>
+          </div>
+
+          <div class="scene-dialogue">
+            <p class="scene-label" id="scene-location">Loading call...</p>
+            <p class="scene-line" id="scene-caption">The latest caller will speak here.</p>
+          </div>
+
+          <div class="scene-controls">
+            <button id="scene-play-btn" type="button">Enter Booth</button>
+            <p class="scene-meta" id="scene-meta">Preparing the latest call.</p>
+          </div>
+
+          <audio id="scene-player" preload="none"></audio>
+        </div>
+      </section>
+
+      <section class="archive-section" aria-labelledby="archive-title">
+        <div class="archive-heading">
+          <p class="scene-overline">Archive</p>
+          <h2 id="archive-title">Recent calls</h2>
+        </div>
+        <section id="calls-feed" class="calls-feed" aria-live="polite"></section>
+      </section>
     </main>
 
     <script src="/script.js"></script>

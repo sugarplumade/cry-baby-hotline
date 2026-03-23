@@ -3,8 +3,17 @@ const voiceInput = document.getElementById("voice");
 const submitBtn = document.getElementById("submit-btn");
 const statusEl = document.getElementById("status");
 const callsFeedEl = document.getElementById("calls-feed");
+const sceneStageEl = document.getElementById("scene-stage");
+const scenePlayBtn = document.getElementById("scene-play-btn");
+const scenePlayer = document.getElementById("scene-player");
+const sceneCaptionEl = document.getElementById("scene-caption");
+const sceneMetaEl = document.getElementById("scene-meta");
+const sceneLocationEl = document.getElementById("scene-location");
 
 let activePlayer = null;
+let sceneMessage = null;
+let sceneTimer = null;
+let sceneFragments = [];
 
 function setStatus(message, isError = false) {
   if (!statusEl) return;
@@ -32,6 +41,95 @@ function classifyEmotion(message) {
   if (/(love|joy|grateful|gratitude|relief|hope|healing|tender|peace)/.test(haystack)) return "hope";
   if (/(confused|unclear|uncertain|lost|disoriented|overwhelmed|mixed)/.test(haystack)) return "confusion";
   return "longing";
+}
+
+function buildSceneFragments(message) {
+  const source = (message.transcript || message.worry || "A caller leaves a message for the city.").trim();
+  const cleaned = source.replace(/\s+/g, " ");
+  if (!cleaned) return ["A caller leaves a message for the city."];
+
+  const words = cleaned.split(" ");
+  const fragments = [];
+
+  for (let index = 0; index < words.length; index += 6) {
+    fragments.push(words.slice(index, index + 6).join(" "));
+  }
+
+  return fragments;
+}
+
+function setSceneMessage(message) {
+  sceneMessage = message;
+  sceneFragments = buildSceneFragments(message);
+
+  if (sceneLocationEl) {
+    sceneLocationEl.textContent = `${(message.locationHint || "Unknown place").split(",")[0]} • ${formatDateTime(message.createdAt)}`;
+  }
+
+  if (sceneCaptionEl) {
+    sceneCaptionEl.textContent = sceneFragments[0] || "A caller leaves a message for the city.";
+  }
+
+  if (sceneMetaEl) {
+    sceneMetaEl.textContent = "Latest call ready to stage.";
+  }
+
+  if (scenePlayer) {
+    scenePlayer.src = message.audioUrl;
+  }
+
+  if (scenePlayBtn) {
+    scenePlayBtn.disabled = false;
+    scenePlayBtn.textContent = "Enter Booth";
+  }
+}
+
+function clearSceneTimer() {
+  if (sceneTimer) {
+    clearInterval(sceneTimer);
+    sceneTimer = null;
+  }
+}
+
+function updateSceneCaption() {
+  if (!scenePlayer || !sceneCaptionEl || !sceneFragments.length) return;
+
+  const duration = scenePlayer.duration || sceneMessage?.durationSeconds || 0;
+  if (!duration) {
+    sceneCaptionEl.textContent = sceneFragments[0];
+    return;
+  }
+
+  const progress = Math.min(scenePlayer.currentTime / duration, 0.999);
+  const index = Math.min(sceneFragments.length - 1, Math.floor(progress * sceneFragments.length));
+  sceneCaptionEl.textContent = sceneFragments[index];
+}
+
+async function startScenePlayback() {
+  if (!sceneMessage || !scenePlayer || !sceneStageEl) return;
+
+  if (activePlayer && activePlayer !== scenePlayer) {
+    activePlayer.pause();
+    activePlayer.currentTime = 0;
+    activePlayer.closest(".call-card")?.classList.remove("is-playing");
+  }
+
+  clearSceneTimer();
+  sceneStageEl.classList.remove("is-ended");
+  sceneStageEl.classList.add("is-playing");
+  scenePlayBtn.textContent = "Replay Scene";
+  sceneMetaEl.textContent = "Caller crossing the street into the booth.";
+  activePlayer = scenePlayer;
+
+  try {
+    scenePlayer.currentTime = 0;
+    await scenePlayer.play();
+    updateSceneCaption();
+    sceneTimer = setInterval(updateSceneCaption, 220);
+  } catch (error) {
+    sceneStageEl.classList.remove("is-playing");
+    sceneMetaEl.textContent = "Playback was blocked. Try again.";
+  }
 }
 
 function buildCallCard(message) {
@@ -113,6 +211,10 @@ async function loadCalls() {
     return;
   }
 
+  if (sceneStageEl && messages[0]) {
+    setSceneMessage(messages[0]);
+  }
+
   messages.forEach((message) => {
     callsFeedEl.appendChild(buildCallCard(message));
   });
@@ -182,4 +284,37 @@ if (uploadForm) {
 
 if (callsFeedEl) {
   loadCalls().catch(() => {});
+}
+
+if (scenePlayBtn) {
+  scenePlayBtn.addEventListener("click", () => {
+    startScenePlayback();
+  });
+}
+
+if (scenePlayer && sceneStageEl) {
+  scenePlayer.addEventListener("play", () => {
+    sceneStageEl.classList.add("is-playing");
+    sceneMetaEl.textContent = "The booth is carrying the call.";
+  });
+
+  scenePlayer.addEventListener("pause", () => {
+    if (!scenePlayer.ended) {
+      sceneStageEl.classList.remove("is-playing");
+      sceneMetaEl.textContent = "Scene paused.";
+    }
+    clearSceneTimer();
+    if (activePlayer === scenePlayer) activePlayer = null;
+  });
+
+  scenePlayer.addEventListener("ended", () => {
+    clearSceneTimer();
+    sceneStageEl.classList.remove("is-playing");
+    sceneStageEl.classList.add("is-ended");
+    sceneMetaEl.textContent = "Scene complete. Enter again to replay.";
+    if (sceneCaptionEl && sceneFragments.length) {
+      sceneCaptionEl.textContent = sceneFragments[sceneFragments.length - 1];
+    }
+    if (activePlayer === scenePlayer) activePlayer = null;
+  });
 }
