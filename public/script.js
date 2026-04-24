@@ -22,6 +22,8 @@ let photoMessage = null;
 let photoTimer = null;
 let photoFragments = [];
 let photoAutoplayAttempted = false;
+let photoPlaylist = [];
+let photoIndex = -1;
 
 function setStatus(message, isError = false) {
   if (!statusEl) return;
@@ -106,6 +108,10 @@ function clearPhotoTimer() {
   }
 }
 
+function getPhotoMessageLabel(message) {
+  return `${(message.locationHint || "Unknown place").split(",")[0]} • ${formatDateTime(message.createdAt)}`;
+}
+
 function updateSceneCaption() {
   if (!scenePlayer || !sceneCaptionEl || !sceneFragments.length) return;
 
@@ -152,7 +158,7 @@ function setPhotoMessage(message) {
   photoFragments = buildSceneFragments(message);
 
   if (photoLocationEl) {
-    photoLocationEl.textContent = `${(message.locationHint || "Unknown place").split(",")[0]} • ${formatDateTime(message.createdAt)}`;
+    photoLocationEl.textContent = getPhotoMessageLabel(message);
   }
 
   if (photoCaptionEl) {
@@ -165,6 +171,7 @@ function setPhotoMessage(message) {
 
   if (photoPlayer) {
     photoPlayer.src = message.audioUrl;
+    photoPlayer.load();
   }
 }
 
@@ -211,11 +218,45 @@ async function attemptPhotoAutoplay() {
   await startPhotoPlayback();
 }
 
+function getNextPhotoMessage(startIndex = -1) {
+  if (!photoPlaylist.length) return null;
+
+  for (let offset = 1; offset <= photoPlaylist.length; offset += 1) {
+    const candidateIndex = (startIndex + offset) % photoPlaylist.length;
+    const candidate = photoPlaylist[candidateIndex];
+    if (candidate?.audioUrl) {
+      photoIndex = candidateIndex;
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+async function playNextPhotoMessage({ autoplay = true } = {}) {
+  const nextMessage = getNextPhotoMessage(photoIndex);
+  if (!nextMessage) return false;
+
+  setPhotoMessage(nextMessage);
+  if (photoMetaEl) {
+    photoMetaEl.textContent = autoplay
+      ? "Starting next call..."
+      : "Next call ready.";
+  }
+
+  if (autoplay) {
+    await attemptPhotoAutoplay();
+  }
+
+  return true;
+}
+
 async function initPhotoOnlyExperience() {
   if (!photoPlayer || !photoCaptionEl) return;
 
   try {
     const messages = await fetchMessages();
+    photoPlaylist = messages.filter((message) => message && message.audioUrl);
     if (!messages.length) {
       photoCaptionEl.textContent = "No calls yet.";
       if (photoMetaEl) photoMetaEl.textContent = "Waiting for the first confession.";
@@ -223,7 +264,15 @@ async function initPhotoOnlyExperience() {
       return;
     }
 
-    setPhotoMessage(messages[0]);
+    const firstMessage = getNextPhotoMessage(-1);
+    if (!firstMessage) {
+      photoCaptionEl.textContent = "No playable calls yet.";
+      if (photoMetaEl) photoMetaEl.textContent = "Waiting for the first playable recording.";
+      if (photoLocationEl) photoLocationEl.textContent = "Cry Baby Hotline";
+      return;
+    }
+
+    setPhotoMessage(firstMessage);
     photoPlayer.autoplay = true;
     photoPlayer.playsInline = true;
     await attemptPhotoAutoplay();
@@ -439,13 +488,20 @@ if (photoPlayer && photoCaptionEl) {
 
   photoPlayer.addEventListener("ended", () => {
     clearPhotoTimer();
-    if (photoMetaEl) {
-      photoMetaEl.textContent = "Call complete. Tap anywhere to replay.";
-    }
     if (photoCaptionEl && photoFragments.length) {
       photoCaptionEl.textContent = photoFragments[photoFragments.length - 1];
     }
     if (activePlayer === photoPlayer) activePlayer = null;
+    playNextPhotoMessage({ autoplay: true }).catch(() => {});
+  });
+
+  photoPlayer.addEventListener("error", () => {
+    clearPhotoTimer();
+    if (photoMetaEl) {
+      photoMetaEl.textContent = "That call could not be played. Skipping ahead...";
+    }
+    if (activePlayer === photoPlayer) activePlayer = null;
+    playNextPhotoMessage({ autoplay: true }).catch(() => {});
   });
 
   photoPlayer.addEventListener("canplay", () => {
@@ -462,6 +518,6 @@ if (photoPlayer && photoCaptionEl) {
 
   document.addEventListener("pointerdown", () => {
     if (!photoPlayer.paused) return;
-    startPhotoPlayback();
+    attemptPhotoAutoplay();
   }, { once: true });
 }
