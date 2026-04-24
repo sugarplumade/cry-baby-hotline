@@ -45,7 +45,7 @@ body::before {
 
 .scene-page {
   min-height: 100vh;
-  padding: 1rem 1rem 2.2rem;
+  padding: 0;
 }
 
 .scene-shell,
@@ -56,6 +56,16 @@ body::before {
 
 .scene-shell {
   backdrop-filter: blur(0.6px);
+}
+
+.photo-only-shell {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.photo-only-stage {
+  min-height: 100vh;
+  background: url("/phone-booth-night.jpg") center center / cover no-repeat;
 }
 
 .scene-nav,
