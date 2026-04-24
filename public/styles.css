@@ -79,36 +79,6 @@ body::before {
   object-position: center;
 }
 
-.booth-sign {
-  position: absolute;
-  font-family: "Arial Black", Impact, Haettenschweiler, sans-serif;
-  font-size: clamp(0.82rem, 1.55vw, 1.28rem);
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  color: #ffc35b;
-  text-transform: none;
-  line-height: 1;
-  white-space: nowrap;
-  text-shadow:
-    0 0 4px rgba(255, 197, 96, 0.85),
-    0 0 12px rgba(255, 175, 73, 0.5),
-    0 0 18px rgba(255, 153, 54, 0.35);
-  mix-blend-mode: screen;
-}
-
-.booth-sign-front {
-  top: 11.1%;
-  left: 43.2%;
-  transform: translateX(-50%);
-}
-
-.booth-sign-side {
-  top: 11.25%;
-  left: 62.3%;
-  transform: translateX(-50%) scaleX(0.84);
-  transform-origin: center;
-}
-
 @media (max-aspect-ratio: 1200/1812) {
   .photo-only-frame {
     width: 100vw;

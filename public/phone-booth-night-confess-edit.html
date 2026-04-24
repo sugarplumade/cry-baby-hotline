@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phone Booth Edit</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #000;
+      }
+
+      .canvas {
+        position: relative;
+        width: 1200px;
+        height: 1812px;
+        overflow: hidden;
+        background: #000;
+      }
+
+      .canvas img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .mask,
+      .label {
+        position: absolute;
+      }
+
+      .mask {
+        background: linear-gradient(180deg, rgba(7, 10, 22, 0.96), rgba(8, 10, 18, 0.98));
+        box-shadow:
+          inset 0 0 10px rgba(255, 190, 101, 0.06),
+          0 0 18px rgba(0, 0, 0, 0.28);
+      }
+
+      .mask-front {
+        left: 420px;
+        top: 345px;
+        width: 236px;
+        height: 122px;
+        border-radius: 4px;
+      }
+
+      .mask-side {
+        left: 776px;
+        top: 349px;
+        width: 142px;
+        height: 118px;
+        border-radius: 3px;
+        transform: skewX(-4deg);
+      }
+
+      .label {
+        font-family: "Arial Black", Impact, Haettenschweiler, sans-serif;
+        font-weight: 900;
+        color: #ffc15a;
+        line-height: 1;
+        white-space: nowrap;
+        text-shadow:
+          0 0 3px rgba(255, 200, 96, 0.92),
+          0 0 10px rgba(255, 164, 65, 0.55),
+          0 0 16px rgba(255, 141, 48, 0.34);
+      }
+
+      .label-front {
+        left: 435px;
+        top: 368px;
+        font-size: 54px;
+        letter-spacing: -0.06em;
+      }
+
+      .label-side {
+        left: 791px;
+        top: 387px;
+        font-size: 31px;
+        letter-spacing: -0.05em;
+        transform: scaleX(0.8);
+        transform-origin: left center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <img src="./phone-booth-night.jpg" alt="" />
+      <div class="mask mask-front"></div>
+      <div class="mask mask-side"></div>
+      <div class="label label-front">Confess</div>
+      <div class="label label-side">Confess</div>
+    </div>
+  </body>
+</html>
