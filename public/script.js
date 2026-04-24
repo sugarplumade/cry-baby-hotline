@@ -21,6 +21,7 @@ let sceneFragments = [];
 let photoMessage = null;
 let photoTimer = null;
 let photoFragments = [];
+let photoAutoplayAttempted = false;
 
 function setStatus(message, isError = false) {
   if (!statusEl) return;
@@ -202,6 +203,14 @@ async function startPhotoPlayback() {
   }
 }
 
+async function attemptPhotoAutoplay() {
+  if (!photoPlayer || !photoMessage) return;
+  if (!photoPlayer.paused) return;
+
+  photoAutoplayAttempted = true;
+  await startPhotoPlayback();
+}
+
 async function initPhotoOnlyExperience() {
   if (!photoPlayer || !photoCaptionEl) return;
 
@@ -215,7 +224,9 @@ async function initPhotoOnlyExperience() {
     }
 
     setPhotoMessage(messages[0]);
-    await startPhotoPlayback();
+    photoPlayer.autoplay = true;
+    photoPlayer.playsInline = true;
+    await attemptPhotoAutoplay();
   } catch (error) {
     photoCaptionEl.textContent = "Could not load the latest call.";
     if (photoMetaEl) photoMetaEl.textContent = "Try refreshing the page.";
@@ -435,6 +446,18 @@ if (photoPlayer && photoCaptionEl) {
       photoCaptionEl.textContent = photoFragments[photoFragments.length - 1];
     }
     if (activePlayer === photoPlayer) activePlayer = null;
+  });
+
+  photoPlayer.addEventListener("canplay", () => {
+    if (photoPlayer.paused && photoAutoplayAttempted) {
+      attemptPhotoAutoplay();
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && photoPlayer.paused) {
+      attemptPhotoAutoplay();
+    }
   });
 
   document.addEventListener("pointerdown", () => {
