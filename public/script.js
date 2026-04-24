@@ -9,11 +9,18 @@ const scenePlayer = document.getElementById("scene-player");
 const sceneCaptionEl = document.getElementById("scene-caption");
 const sceneMetaEl = document.getElementById("scene-meta");
 const sceneLocationEl = document.getElementById("scene-location");
+const photoPlayer = document.getElementById("photo-player");
+const photoCaptionEl = document.getElementById("photo-caption");
+const photoMetaEl = document.getElementById("photo-meta");
+const photoLocationEl = document.getElementById("photo-location");
 
 let activePlayer = null;
 let sceneMessage = null;
 let sceneTimer = null;
 let sceneFragments = [];
+let photoMessage = null;
+let photoTimer = null;
+let photoFragments = [];
 
 function setStatus(message, isError = false) {
   if (!statusEl) return;
@@ -91,6 +98,13 @@ function clearSceneTimer() {
   }
 }
 
+function clearPhotoTimer() {
+  if (photoTimer) {
+    clearInterval(photoTimer);
+    photoTimer = null;
+  }
+}
+
 function updateSceneCaption() {
   if (!scenePlayer || !sceneCaptionEl || !sceneFragments.length) return;
 
@@ -129,6 +143,82 @@ async function startScenePlayback() {
   } catch (error) {
     sceneStageEl.classList.remove("is-playing");
     sceneMetaEl.textContent = "Playback was blocked. Try again.";
+  }
+}
+
+function setPhotoMessage(message) {
+  photoMessage = message;
+  photoFragments = buildSceneFragments(message);
+
+  if (photoLocationEl) {
+    photoLocationEl.textContent = `${(message.locationHint || "Unknown place").split(",")[0]} • ${formatDateTime(message.createdAt)}`;
+  }
+
+  if (photoCaptionEl) {
+    photoCaptionEl.textContent = photoFragments[0] || "A caller leaves a message for the city.";
+  }
+
+  if (photoMetaEl) {
+    photoMetaEl.textContent = "Starting latest call...";
+  }
+
+  if (photoPlayer) {
+    photoPlayer.src = message.audioUrl;
+  }
+}
+
+function updatePhotoCaption() {
+  if (!photoPlayer || !photoCaptionEl || !photoFragments.length) return;
+
+  const duration = photoPlayer.duration || photoMessage?.durationSeconds || 0;
+  if (!duration) {
+    photoCaptionEl.textContent = photoFragments[0];
+    return;
+  }
+
+  const progress = Math.min(photoPlayer.currentTime / duration, 0.999);
+  const index = Math.min(photoFragments.length - 1, Math.floor(progress * photoFragments.length));
+  photoCaptionEl.textContent = photoFragments[index];
+}
+
+async function startPhotoPlayback() {
+  if (!photoMessage || !photoPlayer) return;
+
+  clearPhotoTimer();
+  activePlayer = photoPlayer;
+
+  try {
+    photoPlayer.currentTime = 0;
+    await photoPlayer.play();
+    updatePhotoCaption();
+    photoTimer = setInterval(updatePhotoCaption, 220);
+    if (photoMetaEl) {
+      photoMetaEl.textContent = "Latest call now playing.";
+    }
+  } catch (error) {
+    if (photoMetaEl) {
+      photoMetaEl.textContent = "Autoplay was blocked. Tap anywhere to hear the call.";
+    }
+  }
+}
+
+async function initPhotoOnlyExperience() {
+  if (!photoPlayer || !photoCaptionEl) return;
+
+  try {
+    const messages = await fetchMessages();
+    if (!messages.length) {
+      photoCaptionEl.textContent = "No calls yet.";
+      if (photoMetaEl) photoMetaEl.textContent = "Waiting for the first confession.";
+      if (photoLocationEl) photoLocationEl.textContent = "Cry Baby Hotline";
+      return;
+    }
+
+    setPhotoMessage(messages[0]);
+    await startPhotoPlayback();
+  } catch (error) {
+    photoCaptionEl.textContent = "Could not load the latest call.";
+    if (photoMetaEl) photoMetaEl.textContent = "Try refreshing the page.";
   }
 }
 
@@ -317,4 +407,38 @@ if (scenePlayer && sceneStageEl) {
     }
     if (activePlayer === scenePlayer) activePlayer = null;
   });
+}
+
+if (photoPlayer && photoCaptionEl) {
+  initPhotoOnlyExperience().catch(() => {});
+
+  photoPlayer.addEventListener("play", () => {
+    if (photoMetaEl) {
+      photoMetaEl.textContent = "Latest call now playing.";
+    }
+  });
+
+  photoPlayer.addEventListener("pause", () => {
+    if (!photoPlayer.ended && photoMetaEl) {
+      photoMetaEl.textContent = "Playback paused.";
+    }
+    clearPhotoTimer();
+    if (activePlayer === photoPlayer) activePlayer = null;
+  });
+
+  photoPlayer.addEventListener("ended", () => {
+    clearPhotoTimer();
+    if (photoMetaEl) {
+      photoMetaEl.textContent = "Call complete. Tap anywhere to replay.";
+    }
+    if (photoCaptionEl && photoFragments.length) {
+      photoCaptionEl.textContent = photoFragments[photoFragments.length - 1];
+    }
+    if (activePlayer === photoPlayer) activePlayer = null;
+  });
+
+  document.addEventListener("pointerdown", () => {
+    if (!photoPlayer.paused) return;
+    startPhotoPlayback();
+  }, { once: true });
 }

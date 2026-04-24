@@ -79,6 +79,52 @@ body::before {
   object-position: center;
 }
 
+.photo-caption {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  max-width: min(720px, calc(100% - 2rem));
+  padding: 1rem 1.1rem;
+  border-radius: 20px;
+  background: rgba(7, 5, 4, 0.64);
+  border: 1px solid rgba(255, 235, 205, 0.14);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+}
+
+.photo-caption-location,
+.photo-caption-line,
+.photo-caption-meta {
+  margin: 0;
+}
+
+.photo-caption-location {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 222, 190, 0.72);
+}
+
+.photo-caption-line {
+  margin-top: 0.48rem;
+  font-family: "Special Elite", serif;
+  font-size: clamp(1.05rem, 2vw, 1.55rem);
+  line-height: 1.35;
+  color: rgba(255, 246, 231, 0.98);
+}
+
+.photo-caption-meta {
+  margin-top: 0.58rem;
+  font-size: 0.82rem;
+  color: rgba(255, 222, 190, 0.74);
+}
+
+#photo-player {
+  display: none;
+}
+
 @media (max-aspect-ratio: 1200/1812) {
   .photo-only-frame {
     width: 100vw;

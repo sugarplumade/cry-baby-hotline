@@ -23,8 +23,17 @@
             src="/phone-booth-night-confess.png"
             alt="Night phone booth"
           />
+          <section class="photo-caption" aria-live="polite">
+            <p class="photo-caption-location" id="photo-location">Loading latest call...</p>
+            <p class="photo-caption-line" id="photo-caption">
+              Preparing the latest voice message.
+            </p>
+            <p class="photo-caption-meta" id="photo-meta">Attempting playback...</p>
+          </section>
+          <audio id="photo-player" preload="auto"></audio>
         </div>
       </div>
     </main>
+    <script src="/script.js"></script>
   </body>
 </html>
