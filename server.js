@@ -14,7 +14,7 @@ const TWILIO_BASE_URL = String(process.env.PUBLIC_BASE_URL || "").trim().replace
 const TWILIO_GREETING =
   sanitizeText(
     process.env.TWILIO_GREETING ||
-      "You reached Cry Baby Hotline. Leave your worry after the beep. Your message may be shared publicly.",
+      "You have reached Cry Baby Hotline. Leave your confession after the beep. Dekunle May get back to you.",
     280
   ) || "Leave your message after the beep.";
 const TWILIO_MAX_LENGTH = Math.min(
